@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact } from '../../types';
 import EntertainmentHub from '../Entertainment/Hub';
 import PaymentModal from './PaymentModal';
@@ -10,6 +10,7 @@ import ShareRideOverlay from './ShareRideOverlay';
 import { BidListSkeleton } from '../Shared/LoadingSkeletons';
 import Button from '../Shared/Button';
 import EmptyState from '../Shared/EmptyState';
+import { useDebounce } from '../../hooks/useDebounce';
 import { searchPlaces } from '../../services/gemini';
 import {
   Search, MapPin, Star, Car, Shield, Leaf,
@@ -38,7 +39,7 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
   const [isBuddyHubOpen, setIsBuddyHubOpen] = useState(false);
   const [isSafetyOpen, setIsSafetyOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  
+
   const [prefs, setPrefs] = useState({
     silent: false,
     eco: false,
@@ -49,51 +50,74 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
 
-  const pointsToUSD = appState.loyaltyPoints / 100;
-  const finalPrice = useCredits ? Math.max(0, offeredPrice - pointsToUSD) : offeredPrice;
-  const creditsUsedValue = useCredits ? Math.min(offeredPrice, pointsToUSD) : 0;
-  const creditsUsedPoints = creditsUsedValue * 100;
+  // Debounce search value for performance
+  const debouncedSearchValue = useDebounce(searchValue, 800);
 
-  const MOCK_BIDS: DriverBid[] = [
+  // Memoize expensive calculations
+  const pointsToUSD = useMemo(() => appState.loyaltyPoints / 100, [appState.loyaltyPoints]);
+  const finalPrice = useMemo(() => useCredits ? Math.max(0, offeredPrice - pointsToUSD) : offeredPrice, [useCredits, offeredPrice, pointsToUSD]);
+  const creditsUsedValue = useMemo(() => useCredits ? Math.min(offeredPrice, pointsToUSD) : 0, [useCredits, offeredPrice, pointsToUSD]);
+  const creditsUsedPoints = useMemo(() => creditsUsedValue * 100, [creditsUsedValue]);
+
+  // Memoize mock bids to prevent recreation on every render
+  const MOCK_BIDS = useMemo<DriverBid[]>(() => [
     { id: '1', driverName: 'James T.', rating: 5.0, carModel: 'Mercedes EQE', price: offeredPrice, eta: 3, rank: DriverRank.ELITE, acceptsCredits: true },
     { id: '2', driverName: 'Sarah M.', rating: 4.8, carModel: 'Toyota Camry', price: offeredPrice + 1.5, eta: 6, rank: DriverRank.GOLD, acceptsCredits: false },
     { id: '3', driverName: 'Michael K.', rating: 4.7, carModel: 'Honda Accord', price: offeredPrice - 0.5, eta: 8, rank: DriverRank.SILVER, acceptsCredits: false },
     { id: '4', driverName: 'Chenai P.', rating: 4.4, carModel: 'Nissan Leaf', price: offeredPrice - 1.0, eta: 11, rank: DriverRank.BRONZE, acceptsCredits: false },
-  ];
+  ], [offeredPrice]);
 
-  // REAL-WORLD DESTINATION SEARCH
+  // OPTIMIZED DESTINATION SEARCH with debounce
   useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchValue.length > 2) {
+    let isCancelled = false;
+
+    const performSearch = async () => {
+      if (debouncedSearchValue.length > 2) {
         setIsSearching(true);
-        const results = await searchPlaces(
-          searchValue, 
-          appState.currentLocation?.lat, 
-          appState.currentLocation?.lng
-        );
-        setSuggestions(results);
-        setIsSearching(false);
+        try {
+          const results = await searchPlaces(
+            debouncedSearchValue,
+            appState.currentLocation?.lat,
+            appState.currentLocation?.lng
+          );
+          if (!isCancelled) {
+            setSuggestions(results);
+            setIsSearching(false);
+          }
+        } catch (error) {
+          if (!isCancelled) {
+            console.error('Search failed:', error);
+            setSuggestions([]);
+            setIsSearching(false);
+          }
+        }
       } else {
         setSuggestions([]);
+        setIsSearching(false);
       }
-    }, 800);
+    };
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchValue]);
+    performSearch();
 
-  const selectSuggestion = (s: any) => {
+    return () => {
+      isCancelled = true;
+    };
+  }, [debouncedSearchValue, appState.currentLocation]);
+
+  // Memoize event handlers to prevent recreation
+  const selectSuggestion = useCallback((s: any) => {
     setSearchValue(s.name);
-    updateState({ 
-      destination: { 
-        lat: s.lat || 0, 
-        lng: s.lng || 0, 
-        address: s.name 
-      } 
+    updateState({
+      destination: {
+        lat: s.lat || 0,
+        lng: s.lng || 0,
+        address: s.name
+      }
     });
     setSuggestions([]);
-  };
+  }, [updateState]);
 
-  const handleRequestRide = () => {
+  const handleRequestRide = useCallback(() => {
     if (!searchValue) {
       addNotification("Destination node required", 'error');
       return;
@@ -104,9 +128,9 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
       updateState({ rideStatus: RideStatus.BIDDING });
       addNotification("Drivers found! Select your ride", 'success');
     }, 2000);
-  };
+  }, [searchValue, addNotification, updateState]);
 
-  const acceptBid = (bid: DriverBid) => {
+  const acceptBid = useCallback((bid: DriverBid) => {
     if (useCredits && bid.rank !== DriverRank.ELITE) {
       addNotification("Elite Drivers only for Credit Settlement", 'warning');
       return;
@@ -114,9 +138,9 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
     addNotification(`${bid.driverName} accepted! En route...`, 'success');
     updateState({ rideStatus: RideStatus.EN_ROUTE_PICKUP, activeBid: bid });
     setTimeout(() => updateState({ rideStatus: RideStatus.IN_PROGRESS }), 4000);
-  };
+  }, [useCredits, addNotification, updateState]);
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = useCallback(() => {
     const pointsEarned = offeredPrice >= 7 ? 5 : 0;
     updateState({
       rideStatus: RideStatus.COMPLETED,
@@ -125,15 +149,15 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
     if (pointsEarned > 0) addNotification(`+${pointsEarned} Points earned!`, 'success');
     setUseCredits(false);
     setShowRatingModal(true);
-  };
+  }, [offeredPrice, creditsUsedPoints, appState.loyaltyPoints, updateState, addNotification]);
 
-  const submitRating = () => {
+  const submitRating = useCallback(() => {
     addNotification(`${rating} Star rating submitted!`, 'success');
     setShowRatingModal(false);
     setRating(0);
     setFeedback("");
     updateState({ rideStatus: RideStatus.IDLE, activeBid: null, destination: null });
-  };
+  }, [rating, addNotification, updateState]);
 
   const categories = [
     { id: 'BASIC' as RideCategory, name: 'Neural Basic', price: 10, icon: Car, desc: 'Efficient city travel' },

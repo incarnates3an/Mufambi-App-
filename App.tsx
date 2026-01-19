@@ -1,16 +1,19 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact } from './types';
-import PassengerDashboard from './components/Passenger/Dashboard';
-import DriverDashboard from './components/Driver/Dashboard';
-import AICompanion from './components/AI/Companion';
 import Navigation from './components/Layout/Navigation';
 import Login from './components/Auth/Login';
-import SettingsOverlay from './components/Shared/SettingsOverlay';
-import WalletOverlay from './components/Passenger/WalletOverlay';
 import { ToastContainer, useToast } from './components/Shared/Toast';
+import { FullScreenLoader } from './components/Shared/LoadingSkeletons';
 import { Bell, User, MapPin } from 'lucide-react';
 import { reverseGeocode } from './services/gemini';
+
+// Lazy load heavy components for better initial load performance
+const PassengerDashboard = lazy(() => import('./components/Passenger/Dashboard'));
+const DriverDashboard = lazy(() => import('./components/Driver/Dashboard'));
+const AICompanion = lazy(() => import('./components/AI/Companion'));
+const SettingsOverlay = lazy(() => import('./components/Shared/SettingsOverlay'));
+const WalletOverlay = lazy(() => import('./components/Passenger/WalletOverlay'));
 
 const INITIAL_LOCATION = { lat: -17.8248, lng: 31.0530, address: "Harare City Centre Node" };
 
@@ -154,37 +157,39 @@ const App: React.FC = () => {
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <main className="flex-1 relative overflow-hidden flex flex-col">
-        {appState.userRole === UserRole.PASSENGER ? (
-          <PassengerDashboard appState={appState} updateState={updateState} addNotification={addNotification} />
-        ) : (
-          <DriverDashboard appState={appState} updateState={updateState} addNotification={addNotification} />
+      <Suspense fallback={<FullScreenLoader message="Loading Dashboard..." />}>
+        <main className="flex-1 relative overflow-hidden flex flex-col">
+          {appState.userRole === UserRole.PASSENGER ? (
+            <PassengerDashboard appState={appState} updateState={updateState} addNotification={addNotification} />
+          ) : (
+            <DriverDashboard appState={appState} updateState={updateState} addNotification={addNotification} />
+          )}
+        </main>
+
+        {appState.userRole === UserRole.PASSENGER && (
+          <AICompanion personality={appState.aiPersonality} appState={appState} />
         )}
-      </main>
 
-      {appState.userRole === UserRole.PASSENGER && (
-        <AICompanion personality={appState.aiPersonality} appState={appState} />
-      )}
+        {isSettingsOpen && (
+          <SettingsOverlay
+            appState={appState}
+            updateState={updateState}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+        )}
 
-      {isSettingsOpen && (
-        <SettingsOverlay 
-          appState={appState} 
-          updateState={updateState} 
-          onClose={() => setIsSettingsOpen(false)} 
-        />
-      )}
+        {isWalletOpen && (
+          <WalletOverlay
+            appState={appState}
+            updateState={updateState}
+            onClose={() => setIsWalletOpen(false)}
+            addNotification={addNotification}
+          />
+        )}
+      </Suspense>
 
-      {isWalletOpen && (
-        <WalletOverlay
-          appState={appState}
-          updateState={updateState}
-          onClose={() => setIsWalletOpen(false)}
-          addNotification={addNotification}
-        />
-      )}
-
-      <Navigation 
-        role={appState.userRole} 
+      <Navigation
+        role={appState.userRole}
         onSettingsClick={() => setIsSettingsOpen(true)}
         onWalletClick={() => setIsWalletOpen(true)}
       />
