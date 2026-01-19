@@ -1,0 +1,8 @@
+{
+  "name": "Mufambi - AI Ride-Hailing",
+  "description": "A next-generation AI-powered ride-hailing application with intelligent ride matching, real-time tracking, and a customizable AI companion for an enhanced travel experience.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ]
+}
