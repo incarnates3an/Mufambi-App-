@@ -11,7 +11,7 @@ import { BarChart, Bar, ResponsiveContainer, XAxis, Tooltip, Cell, YAxis } from 
 interface DriverDashboardProps {
   appState: AppState;
   updateState: (updates: Partial<AppState>) => void;
-  addNotification: (msg: string) => void;
+  addNotification: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 const DAILY_DATA = [
@@ -59,12 +59,15 @@ const DriverDashboard: React.FC<DriverDashboardProps> = ({ appState, updateState
   const toggleOnline = () => {
     const nextState = !appState.isOnline;
     updateState({ isOnline: nextState });
-    addNotification(nextState ? "Node Live: Broadcasting location." : "Node Dark: Location broadcasting suspended.");
+    addNotification(
+      nextState ? "Node Live: Broadcasting location" : "Node Dark: Location suspended",
+      nextState ? 'success' : 'info'
+    );
   };
 
   const isElite = appState.driverRank === DriverRank.ELITE;
   const currentReq = RANK_REQUIREMENTS[appState.driverRank];
-  
+
   const rideProgress = Math.min(100, (appState.completedRides / currentReq.rides) * 100);
   const ratingProgress = Math.min(100, (appState.driverRating / currentReq.rating) * 100);
   const responseProgress = Math.min(100, (currentReq.response / appState.avgResponseTime) * 100);
@@ -76,7 +79,7 @@ const DriverDashboard: React.FC<DriverDashboardProps> = ({ appState, updateState
     if (!canUpgrade) return;
     const nextRank = currentReq.next as DriverRank;
     updateState({ driverRank: nextRank });
-    addNotification(`RANK UP: Driver Node evolved to ${nextRank.toUpperCase()} Class!`);
+    addNotification(`Rank Up! Now ${nextRank} Class Driver!`, 'success');
   };
 
   const chartData = timeframe === 'DAILY' ? DAILY_DATA : WEEKLY_DATA;

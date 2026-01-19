@@ -7,9 +7,12 @@ import BuddyHub from './BuddyHub';
 import Map from '../Shared/Map';
 import SafeCircleOverlay from './SafeCircleOverlay';
 import ShareRideOverlay from './ShareRideOverlay';
+import { BidListSkeleton } from '../Shared/LoadingSkeletons';
+import Button from '../Shared/Button';
+import EmptyState from '../Shared/EmptyState';
 import { searchPlaces } from '../../services/gemini';
-import { 
-  Search, MapPin, Star, Car, Shield, Leaf, 
+import {
+  Search, MapPin, Star, Car, Shield, Leaf,
   Smile, Music, Users, Plus, Minus, X, Check,
   Zap, Radio, Gamepad2, Briefcase, Flame, Snowflake,
   ChevronRight, Settings, Coins, Wallet, Trophy, AlertCircle, TrendingUp,
@@ -19,7 +22,7 @@ import {
 interface PassengerDashboardProps {
   appState: AppState;
   updateState: (updates: Partial<AppState>) => void;
-  addNotification: (msg: string) => void;
+  addNotification: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 type RideCategory = 'BASIC' | 'ELITE' | 'INTER_CITY';
@@ -92,35 +95,40 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
 
   const handleRequestRide = () => {
     if (!searchValue) {
-      addNotification("ERROR: Destination node required.");
+      addNotification("Destination node required", 'error');
       return;
     }
+    addNotification("Searching for nearby drivers...", 'info');
     updateState({ rideStatus: RideStatus.SEARCHING });
-    setTimeout(() => updateState({ rideStatus: RideStatus.BIDDING }), 2000);
+    setTimeout(() => {
+      updateState({ rideStatus: RideStatus.BIDDING });
+      addNotification("Drivers found! Select your ride", 'success');
+    }, 2000);
   };
 
   const acceptBid = (bid: DriverBid) => {
     if (useCredits && bid.rank !== DriverRank.ELITE) {
-      addNotification("CRITICAL: Elite Drivers only for Credit Settlement.");
+      addNotification("Elite Drivers only for Credit Settlement", 'warning');
       return;
     }
+    addNotification(`${bid.driverName} accepted! En route...`, 'success');
     updateState({ rideStatus: RideStatus.EN_ROUTE_PICKUP, activeBid: bid });
     setTimeout(() => updateState({ rideStatus: RideStatus.IN_PROGRESS }), 4000);
   };
 
   const handlePaymentComplete = () => {
     const pointsEarned = offeredPrice >= 7 ? 5 : 0;
-    updateState({ 
+    updateState({
       rideStatus: RideStatus.COMPLETED,
       loyaltyPoints: appState.loyaltyPoints - creditsUsedPoints + pointsEarned
     });
-    if (pointsEarned > 0) addNotification(`+${pointsEarned} PTS Credited to your Node.`);
+    if (pointsEarned > 0) addNotification(`+${pointsEarned} Points earned!`, 'success');
     setUseCredits(false);
     setShowRatingModal(true);
   };
 
   const submitRating = () => {
-    addNotification(`FEEDBACK LOGGED: ${rating} Stars synced to Driver Node.`);
+    addNotification(`${rating} Star rating submitted!`, 'success');
     setShowRatingModal(false);
     setRating(0);
     setFeedback("");
@@ -335,6 +343,20 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
             >
               Initiate Ride Sequence <Navigation2 className="w-4 h-4 fill-current" />
             </button>
+          </div>
+        )}
+
+        {/* Searching for Drivers */}
+        {appState.rideStatus === RideStatus.SEARCHING && (
+          <div className="space-y-4 animate-in slide-in-from-bottom-6">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Scanning Network</h2>
+              <span className="text-[9px] font-black uppercase text-indigo-400 bg-indigo-900/30 px-3 py-1 rounded-full border border-indigo-500/20 flex items-center gap-2">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Searching...
+              </span>
+            </div>
+            <BidListSkeleton count={4} />
           </div>
         )}
 

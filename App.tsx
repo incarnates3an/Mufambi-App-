@@ -8,6 +8,7 @@ import Navigation from './components/Layout/Navigation';
 import Login from './components/Auth/Login';
 import SettingsOverlay from './components/Shared/SettingsOverlay';
 import WalletOverlay from './components/Passenger/WalletOverlay';
+import { ToastContainer, useToast } from './components/Shared/Toast';
 import { Bell, User, MapPin } from 'lucide-react';
 import { reverseGeocode } from './services/gemini';
 
@@ -19,6 +20,8 @@ const MOCK_SAFE_CIRCLE: SafeCircleContact[] = [
 ];
 
 const App: React.FC = () => {
+  const { toasts, dismissToast, info, warning, success, error } = useToast();
+
   const [appState, setAppState] = useState<AppState>({
     isLoggedIn: false,
     userRole: UserRole.PASSENGER,
@@ -47,10 +50,9 @@ const App: React.FC = () => {
     biometricsEnabled: true
   });
 
-  const [notifications, setNotifications] = useState<string[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
-  
+
   const lastGeocodeRef = useRef(0);
   const geocodeInProgress = useRef(false);
 
@@ -58,8 +60,20 @@ const App: React.FC = () => {
     setAppState(prev => ({ ...prev, ...updates }));
   };
 
-  const addNotification = (msg: string) => {
-    setNotifications(prev => [msg, ...prev.slice(0, 4)]);
+  const addNotification = (msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    switch (type) {
+      case 'success':
+        success(msg);
+        break;
+      case 'error':
+        error(msg);
+        break;
+      case 'warning':
+        warning(msg);
+        break;
+      default:
+        info(msg);
+    }
   };
 
   // HIGH-PRECISION LOCATION WATCHER - FIXED DEPENDENCY ARRAY
@@ -122,13 +136,13 @@ const App: React.FC = () => {
 
       return () => navigator.geolocation.clearWatch(watchId);
     } else {
-      addNotification("ERROR: Device lacks Localization Hardware.");
+      addNotification("Device lacks Localization Hardware", 'error');
     }
   }, [appState.isLoggedIn]); // Only run when login status changes
 
   const handleLogin = (role: UserRole) => {
     updateState({ userRole: role, isLoggedIn: true });
-    addNotification(`Identity Synchronized: ${role === UserRole.PASSENGER ? 'Passenger' : 'Driver'} Mode Active`);
+    addNotification(`Identity Synchronized: ${role === UserRole.PASSENGER ? 'Passenger' : 'Driver'} Mode Active`, 'success');
   };
 
   if (!appState.isLoggedIn) {
@@ -137,17 +151,8 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-[#050505] overflow-hidden relative">
-      {notifications.length > 0 && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-[100] animate-in slide-in-from-top-4">
-          <div className="bg-indigo-600/90 backdrop-blur-md text-white p-4 rounded-2xl shadow-[0_0_30px_rgba(79,70,229,0.5)] border border-white/20 flex items-center justify-between">
-             <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-white animate-pulse" />
-                <p className="text-[10px] font-black uppercase tracking-widest">{notifications[0]}</p>
-             </div>
-             <button onClick={() => setNotifications([])} className="text-white/80 font-bold ml-4 text-xl">×</button>
-          </div>
-        </div>
-      )}
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <main className="flex-1 relative overflow-hidden flex flex-col">
         {appState.userRole === UserRole.PASSENGER ? (
