@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { X, CreditCard, DollarSign, Smartphone, CheckCircle2, Loader2, ArrowRight, ExternalLink, Shield, Coins, Building2, UserCheck, Wallet } from 'lucide-react';
-import { PaymentMethod } from '../../types.ts';
+import { PaymentMethod } from '../../types';
 
 interface PaymentModalProps {
   amount: number;

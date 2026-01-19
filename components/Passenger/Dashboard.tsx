@@ -1,15 +1,19 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact } from '../../types.ts';
-import EntertainmentHub from '../Entertainment/Hub.tsx';
-import PaymentModal from './PaymentModal.tsx';
-import BuddyHub from './BuddyHub.tsx';
-import Map from '../Shared/Map.tsx';
-import SafeCircleOverlay from './SafeCircleOverlay.tsx';
-import ShareRideOverlay from './ShareRideOverlay.tsx';
-import { searchPlaces } from '../../services/gemini.ts';
-import { 
-  Search, MapPin, Star, Car, Shield, Leaf, 
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact } from '../../types';
+import EntertainmentHub from '../Entertainment/Hub';
+import PaymentModal from './PaymentModal';
+import BuddyHub from './BuddyHub';
+import Map from '../Shared/Map';
+import SafeCircleOverlay from './SafeCircleOverlay';
+import ShareRideOverlay from './ShareRideOverlay';
+import { BidListSkeleton } from '../Shared/LoadingSkeletons';
+import Button from '../Shared/Button';
+import EmptyState from '../Shared/EmptyState';
+import { useDebounce } from '../../hooks/useDebounce';
+import { searchPlaces } from '../../services/gemini';
+import {
+  Search, MapPin, Star, Car, Shield, Leaf,
   Smile, Music, Users, Plus, Minus, X, Check,
   Zap, Radio, Gamepad2, Briefcase, Flame, Snowflake,
   ChevronRight, Settings, Coins, Wallet, Trophy, AlertCircle, TrendingUp,
@@ -19,7 +23,7 @@ import {
 interface PassengerDashboardProps {
   appState: AppState;
   updateState: (updates: Partial<AppState>) => void;
-  addNotification: (msg: string) => void;
+  addNotification: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 type RideCategory = 'BASIC' | 'ELITE' | 'INTER_CITY';
@@ -35,7 +39,7 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
   const [isBuddyHubOpen, setIsBuddyHubOpen] = useState(false);
   const [isSafetyOpen, setIsSafetyOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  
+
   const [prefs, setPrefs] = useState({
     silent: false,
     eco: false,
@@ -46,86 +50,114 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
 
-  const pointsToUSD = appState.loyaltyPoints / 100;
-  const finalPrice = useCredits ? Math.max(0, offeredPrice - pointsToUSD) : offeredPrice;
-  const creditsUsedValue = useCredits ? Math.min(offeredPrice, pointsToUSD) : 0;
-  const creditsUsedPoints = creditsUsedValue * 100;
+  // Debounce search value for performance
+  const debouncedSearchValue = useDebounce(searchValue, 800);
 
-  const MOCK_BIDS: DriverBid[] = [
+  // Memoize expensive calculations
+  const pointsToUSD = useMemo(() => appState.loyaltyPoints / 100, [appState.loyaltyPoints]);
+  const finalPrice = useMemo(() => useCredits ? Math.max(0, offeredPrice - pointsToUSD) : offeredPrice, [useCredits, offeredPrice, pointsToUSD]);
+  const creditsUsedValue = useMemo(() => useCredits ? Math.min(offeredPrice, pointsToUSD) : 0, [useCredits, offeredPrice, pointsToUSD]);
+  const creditsUsedPoints = useMemo(() => creditsUsedValue * 100, [creditsUsedValue]);
+
+  // Memoize mock bids to prevent recreation on every render
+  const MOCK_BIDS = useMemo<DriverBid[]>(() => [
     { id: '1', driverName: 'James T.', rating: 5.0, carModel: 'Mercedes EQE', price: offeredPrice, eta: 3, rank: DriverRank.ELITE, acceptsCredits: true },
     { id: '2', driverName: 'Sarah M.', rating: 4.8, carModel: 'Toyota Camry', price: offeredPrice + 1.5, eta: 6, rank: DriverRank.GOLD, acceptsCredits: false },
     { id: '3', driverName: 'Michael K.', rating: 4.7, carModel: 'Honda Accord', price: offeredPrice - 0.5, eta: 8, rank: DriverRank.SILVER, acceptsCredits: false },
     { id: '4', driverName: 'Chenai P.', rating: 4.4, carModel: 'Nissan Leaf', price: offeredPrice - 1.0, eta: 11, rank: DriverRank.BRONZE, acceptsCredits: false },
-  ];
+  ], [offeredPrice]);
 
-  // REAL-WORLD DESTINATION SEARCH
+  // OPTIMIZED DESTINATION SEARCH with debounce
   useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchValue.length > 2) {
+    let isCancelled = false;
+
+    const performSearch = async () => {
+      if (debouncedSearchValue.length > 2) {
         setIsSearching(true);
-        const results = await searchPlaces(
-          searchValue, 
-          appState.currentLocation?.lat, 
-          appState.currentLocation?.lng
-        );
-        setSuggestions(results);
-        setIsSearching(false);
+        try {
+          const results = await searchPlaces(
+            debouncedSearchValue,
+            appState.currentLocation?.lat,
+            appState.currentLocation?.lng
+          );
+          if (!isCancelled) {
+            setSuggestions(results);
+            setIsSearching(false);
+          }
+        } catch (error) {
+          if (!isCancelled) {
+            console.error('Search failed:', error);
+            setSuggestions([]);
+            setIsSearching(false);
+          }
+        }
       } else {
         setSuggestions([]);
+        setIsSearching(false);
       }
-    }, 800);
+    };
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchValue]);
+    performSearch();
 
-  const selectSuggestion = (s: any) => {
+    return () => {
+      isCancelled = true;
+    };
+  }, [debouncedSearchValue, appState.currentLocation]);
+
+  // Memoize event handlers to prevent recreation
+  const selectSuggestion = useCallback((s: any) => {
     setSearchValue(s.name);
-    updateState({ 
-      destination: { 
-        lat: s.lat || 0, 
-        lng: s.lng || 0, 
-        address: s.name 
-      } 
+    updateState({
+      destination: {
+        lat: s.lat || 0,
+        lng: s.lng || 0,
+        address: s.name
+      }
     });
     setSuggestions([]);
-  };
+  }, [updateState]);
 
-  const handleRequestRide = () => {
+  const handleRequestRide = useCallback(() => {
     if (!searchValue) {
-      addNotification("ERROR: Destination node required.");
+      addNotification("Destination node required", 'error');
       return;
     }
+    addNotification("Searching for nearby drivers...", 'info');
     updateState({ rideStatus: RideStatus.SEARCHING });
-    setTimeout(() => updateState({ rideStatus: RideStatus.BIDDING }), 2000);
-  };
+    setTimeout(() => {
+      updateState({ rideStatus: RideStatus.BIDDING });
+      addNotification("Drivers found! Select your ride", 'success');
+    }, 2000);
+  }, [searchValue, addNotification, updateState]);
 
-  const acceptBid = (bid: DriverBid) => {
+  const acceptBid = useCallback((bid: DriverBid) => {
     if (useCredits && bid.rank !== DriverRank.ELITE) {
-      addNotification("CRITICAL: Elite Drivers only for Credit Settlement.");
+      addNotification("Elite Drivers only for Credit Settlement", 'warning');
       return;
     }
+    addNotification(`${bid.driverName} accepted! En route...`, 'success');
     updateState({ rideStatus: RideStatus.EN_ROUTE_PICKUP, activeBid: bid });
     setTimeout(() => updateState({ rideStatus: RideStatus.IN_PROGRESS }), 4000);
-  };
+  }, [useCredits, addNotification, updateState]);
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = useCallback(() => {
     const pointsEarned = offeredPrice >= 7 ? 5 : 0;
-    updateState({ 
+    updateState({
       rideStatus: RideStatus.COMPLETED,
       loyaltyPoints: appState.loyaltyPoints - creditsUsedPoints + pointsEarned
     });
-    if (pointsEarned > 0) addNotification(`+${pointsEarned} PTS Credited to your Node.`);
+    if (pointsEarned > 0) addNotification(`+${pointsEarned} Points earned!`, 'success');
     setUseCredits(false);
     setShowRatingModal(true);
-  };
+  }, [offeredPrice, creditsUsedPoints, appState.loyaltyPoints, updateState, addNotification]);
 
-  const submitRating = () => {
-    addNotification(`FEEDBACK LOGGED: ${rating} Stars synced to Driver Node.`);
+  const submitRating = useCallback(() => {
+    addNotification(`${rating} Star rating submitted!`, 'success');
     setShowRatingModal(false);
     setRating(0);
     setFeedback("");
     updateState({ rideStatus: RideStatus.IDLE, activeBid: null, destination: null });
-  };
+  }, [rating, addNotification, updateState]);
 
   const categories = [
     { id: 'BASIC' as RideCategory, name: 'Neural Basic', price: 10, icon: Car, desc: 'Efficient city travel' },
@@ -338,6 +370,20 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
           </div>
         )}
 
+        {/* Searching for Drivers */}
+        {appState.rideStatus === RideStatus.SEARCHING && (
+          <div className="space-y-4 animate-in slide-in-from-bottom-6">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Scanning Network</h2>
+              <span className="text-[9px] font-black uppercase text-indigo-400 bg-indigo-900/30 px-3 py-1 rounded-full border border-indigo-500/20 flex items-center gap-2">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Searching...
+              </span>
+            </div>
+            <BidListSkeleton count={4} />
+          </div>
+        )}
+
         {/* Bidding Node */}
         {appState.rideStatus === RideStatus.BIDDING && (
           <div className="space-y-4 animate-in slide-in-from-bottom-6">
@@ -490,12 +536,83 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
       )}
       {isBuddyHubOpen && <BuddyHub onClose={() => setIsBuddyHubOpen(false)} userMood={appState.mood} rideStatus={appState.rideStatus} />}
       {appState.rideStatus === RideStatus.PAYMENT_PENDING && (
-        <PaymentModal 
-          amount={finalPrice} 
+        <PaymentModal
+          amount={finalPrice}
           creditsUsed={creditsUsedPoints}
           onComplete={handlePaymentComplete}
           onCancel={() => updateState({ rideStatus: RideStatus.IN_PROGRESS })}
         />
+      )}
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#0f0f12] border border-white/5 rounded-[3rem] p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(79,70,229,0.4)]">
+                <Star className="w-8 h-8 text-white fill-current" />
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Rate Your Journey</h3>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Help us optimize the neural network</p>
+              </div>
+
+              {/* Star Rating */}
+              <div className="flex items-center justify-center gap-3 py-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="transition-all hover:scale-110 active:scale-95"
+                  >
+                    <Star
+                      className={`w-10 h-10 transition-colors ${
+                        star <= rating
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-700 hover:text-gray-500'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Feedback Text */}
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest text-left block ml-2">
+                  Additional Feedback (Optional)
+                </label>
+                <textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="Share your experience..."
+                  className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm text-white placeholder:text-gray-700 outline-none focus:border-indigo-500/40 focus:ring-4 focus:ring-indigo-500/5 transition-all resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <button
+                  onClick={() => {
+                    setShowRatingModal(false);
+                    updateState({ rideStatus: RideStatus.IDLE, activeBid: null, destination: null });
+                  }}
+                  className="py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-white/10 transition-all"
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={submitRating}
+                  disabled={rating === 0}
+                  className="py-4 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-500"
+                >
+                  Submit Rating
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

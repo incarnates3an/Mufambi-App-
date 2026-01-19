@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Sparkles, Gamepad2, Info, Smile, Mic, MicOff, Volume2, BrainCircuit } from 'lucide-react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
-import { generateAIResponse, getTrivia } from '../../services/gemini.ts';
-import { AIPersonality, AppState } from '../../types.ts';
+import { generateAIResponse, getTrivia } from '../../services/gemini';
+import { AIPersonality, AppState } from '../../types';
 
 // Audio Utility Functions
 function encode(bytes: Uint8Array) {
@@ -93,7 +93,8 @@ const AICompanion: React.FC<AICompanionProps> = ({ personality, appState }) => {
 
     try {
       setIsLoading(true);
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = typeof window !== 'undefined' ? localStorage.getItem('GEMINI_API_KEY') || '' : '';
+      const ai = new GoogleGenAI({ apiKey });
       
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       const outputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });

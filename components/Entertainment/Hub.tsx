@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Youtube, Music, Play, Search as SearchIcon, ShieldCheck, Gamepad2, Coins, AlertTriangle, Radio, PlayCircle, Apple, ListMusic } from 'lucide-react';
-import Arcade from './Arcade.tsx';
+import Arcade from './Arcade';
 
 interface EntertainmentHubProps {
   onClose: () => void;

@@ -7,7 +7,7 @@ import {
   Sparkles, Wallet, Smartphone, DollarSign, Car, 
   FileText, Hash, MapPin, Heart, Users, Zap, Star
 } from 'lucide-react';
-import { AppState, AIPersonality, PaymentMethod, UserRole, DriverRank } from '../../types.ts';
+import { AppState, AIPersonality, PaymentMethod, UserRole, DriverRank } from '../../types';
 
 interface SettingsOverlayProps {
   appState: AppState;

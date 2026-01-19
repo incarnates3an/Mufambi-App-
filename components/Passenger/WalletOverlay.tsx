@@ -5,7 +5,7 @@ import {
   ArrowUpRight, History, ShieldCheck, Check, Plus, 
   ArrowDownLeft, Sparkles, TrendingUp, Zap
 } from 'lucide-react';
-import { AppState, PaymentMethod } from '../../types.ts';
+import { AppState, PaymentMethod } from '../../types';
 
 interface WalletOverlayProps {
   appState: AppState;
