@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact } from '../../types.ts';
-import EntertainmentHub from '../Entertainment/Hub.tsx';
-import PaymentModal from './PaymentModal.tsx';
-import BuddyHub from './BuddyHub.tsx';
-import Map from '../Shared/Map.tsx';
-import SafeCircleOverlay from './SafeCircleOverlay.tsx';
-import ShareRideOverlay from './ShareRideOverlay.tsx';
-import { searchPlaces } from '../../services/gemini.ts';
+import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact } from '../../types';
+import EntertainmentHub from '../Entertainment/Hub';
+import PaymentModal from './PaymentModal';
+import BuddyHub from './BuddyHub';
+import Map from '../Shared/Map';
+import SafeCircleOverlay from './SafeCircleOverlay';
+import ShareRideOverlay from './ShareRideOverlay';
+import { searchPlaces } from '../../services/gemini';
 import { 
   Search, MapPin, Star, Car, Shield, Leaf, 
   Smile, Music, Users, Plus, Minus, X, Check,
@@ -490,12 +490,83 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
       )}
       {isBuddyHubOpen && <BuddyHub onClose={() => setIsBuddyHubOpen(false)} userMood={appState.mood} rideStatus={appState.rideStatus} />}
       {appState.rideStatus === RideStatus.PAYMENT_PENDING && (
-        <PaymentModal 
-          amount={finalPrice} 
+        <PaymentModal
+          amount={finalPrice}
           creditsUsed={creditsUsedPoints}
           onComplete={handlePaymentComplete}
           onCancel={() => updateState({ rideStatus: RideStatus.IN_PROGRESS })}
         />
+      )}
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#0f0f12] border border-white/5 rounded-[3rem] p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(79,70,229,0.4)]">
+                <Star className="w-8 h-8 text-white fill-current" />
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Rate Your Journey</h3>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Help us optimize the neural network</p>
+              </div>
+
+              {/* Star Rating */}
+              <div className="flex items-center justify-center gap-3 py-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="transition-all hover:scale-110 active:scale-95"
+                  >
+                    <Star
+                      className={`w-10 h-10 transition-colors ${
+                        star <= rating
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-700 hover:text-gray-500'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Feedback Text */}
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest text-left block ml-2">
+                  Additional Feedback (Optional)
+                </label>
+                <textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="Share your experience..."
+                  className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm text-white placeholder:text-gray-700 outline-none focus:border-indigo-500/40 focus:ring-4 focus:ring-indigo-500/5 transition-all resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <button
+                  onClick={() => {
+                    setShowRatingModal(false);
+                    updateState({ rideStatus: RideStatus.IDLE, activeBid: null, destination: null });
+                  }}
+                  className="py-4 bg-white/5 border border-white/5 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-white/10 transition-all"
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={submitRating}
+                  disabled={rating === 0}
+                  className="py-4 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-500"
+                >
+                  Submit Rating
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

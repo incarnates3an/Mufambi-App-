@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CreditCard, History, Map as MapIcon, Settings, TrendingUp, Briefcase, Star, LayoutGrid, Wallet } from 'lucide-react';
-import { UserRole } from '../../types.ts';
+import { UserRole } from '../../types';
 
 interface NavigationProps {
   role: UserRole;

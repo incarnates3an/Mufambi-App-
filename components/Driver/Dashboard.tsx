@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { UserRole, AppState, DriverRank } from '../../types.ts';
+import { UserRole, AppState, DriverRank } from '../../types';
 import { 
   Power, TrendingUp, Star, Navigation, Clock, ShieldCheck, 
   Coins, Trophy, Zap, AlertTriangle, ChevronRight, BarChart3, 

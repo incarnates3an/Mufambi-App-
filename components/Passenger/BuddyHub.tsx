@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Users, MessageCircle, Sparkles, Send, Circle, Search, Heart, MapPin, Radio } from 'lucide-react';
-import { Buddy, Message, RideStatus } from '../../types.ts';
-import { getBuddySuggestions } from '../../services/gemini.ts';
+import { Buddy, Message, RideStatus } from '../../types';
+import { getBuddySuggestions } from '../../services/gemini';
 
 interface BuddyHubProps {
   onClose: () => void;

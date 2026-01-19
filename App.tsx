@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact } from './types.ts';
-import PassengerDashboard from './components/Passenger/Dashboard.tsx';
-import DriverDashboard from './components/Driver/Dashboard.tsx';
-import AICompanion from './components/AI/Companion.tsx';
-import Navigation from './components/Layout/Navigation.tsx';
-import Login from './components/Auth/Login.tsx';
-import SettingsOverlay from './components/Shared/SettingsOverlay.tsx';
-import WalletOverlay from './components/Passenger/WalletOverlay.tsx';
+import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact } from './types';
+import PassengerDashboard from './components/Passenger/Dashboard';
+import DriverDashboard from './components/Driver/Dashboard';
+import AICompanion from './components/AI/Companion';
+import Navigation from './components/Layout/Navigation';
+import Login from './components/Auth/Login';
+import SettingsOverlay from './components/Shared/SettingsOverlay';
+import WalletOverlay from './components/Passenger/WalletOverlay';
 import { Bell, User, MapPin } from 'lucide-react';
-import { reverseGeocode } from './services/gemini.ts';
+import { reverseGeocode } from './services/gemini';
 
 const INITIAL_LOCATION = { lat: -17.8248, lng: 31.0530, address: "Harare City Centre Node" };
 

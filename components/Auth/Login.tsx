@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { UserRole } from '../../types.ts';
+import { UserRole } from '../../types';
 import { 
   Car, User, Zap, Shield, ChevronRight, Fingerprint, Globe, 
   Phone, CreditCard, Camera, Scan, CheckCircle2, AlertCircle, 

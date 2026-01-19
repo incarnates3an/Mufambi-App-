@@ -1,8 +1,22 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIPersonality } from "../types.ts";
+import { AIPersonality } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Get API key from environment or fallback to prompt
+const getApiKey = () => {
+  // For development, you can set this in your browser's localStorage
+  // localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here')
+  if (typeof window !== 'undefined') {
+    const key = localStorage.getItem('GEMINI_API_KEY');
+    if (!key) {
+      console.warn('Gemini API key not found. Set it using: localStorage.setItem("GEMINI_API_KEY", "your-key")');
+    }
+    return key || '';
+  }
+  return '';
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 /**
  * Uses Gemini with Google Maps grounding to turn coordinates into a real address.
@@ -69,13 +83,13 @@ export const searchPlaces = async (query: string, currentLat?: number, currentLn
 };
 
 export const generateAIResponse = async (
-  prompt: string, 
-  personality: AIPersonality, 
+  prompt: string,
+  personality: AIPersonality,
   context: string = ""
 ) => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-2.0-flash-exp",
       contents: prompt,
       config: {
         thinkingConfig: {
@@ -106,7 +120,7 @@ export const generateAIResponse = async (
     console.error("AI reasoning failed, falling back to basic:", error);
     try {
       const fallback = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-1.5-flash",
         contents: prompt
       });
       return fallback.text;
@@ -119,7 +133,7 @@ export const generateAIResponse = async (
 export const getBuddySuggestions = async (userMood: string, rideStatus: string) => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Suggest 3 fictional travel buddies for a Mufambi user who is currently feeling "${userMood}" and has a ride status of "${rideStatus}". 
       
       MATCHING LOGIC:
@@ -134,14 +148,10 @@ export const getBuddySuggestions = async (userMood: string, rideStatus: string) 
           items: {
             type: Type.OBJECT,
             properties: {
-              recipeName: { // Note: property names in schema should match desired JSON output properties
-                type: Type.STRING,
-                description: 'The name of the buddy.',
-              },
-              name: { type: Type.STRING },
-              vibe: { type: Type.STRING },
+              name: { type: Type.STRING, description: 'The name of the buddy' },
+              vibe: { type: Type.STRING, description: 'The personality/vibe of the buddy' },
               matchReason: { type: Type.STRING, description: "Why they are a good match for the user's mood and current ride phase" },
-              commonInterests: { type: Type.ARRAY, items: { type: Type.STRING } }
+              commonInterests: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Common interests with the user' }
             },
             required: ["name", "vibe", "matchReason", "commonInterests"]
           }
@@ -161,7 +171,7 @@ export const getBuddySuggestions = async (userMood: string, rideStatus: string) 
 export const getTrivia = async () => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-2.0-flash-exp",
       contents: "Tell me a sophisticated, obscure, and fascinating fact about world transportation or urban history.",
       config: {
         thinkingConfig: { thinkingBudget: 4096 },
