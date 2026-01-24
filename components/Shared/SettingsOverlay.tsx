@@ -1,13 +1,14 @@
 
-import React from 'react';
-import { 
-  X, User, Shield, Bell, CreditCard, BrainCircuit, 
-  LogOut, ChevronRight, Fingerprint, Activity, 
+import React, { useState } from 'react';
+import {
+  X, User, Shield, Bell, CreditCard, BrainCircuit,
+  LogOut, ChevronRight, Fingerprint, Activity,
   Leaf, Trophy, Settings as SettingsIcon, Check,
-  Sparkles, Wallet, Smartphone, DollarSign, Car, 
-  FileText, Hash, MapPin, Heart, Users, Zap, Star
+  Sparkles, Wallet, Smartphone, DollarSign, Car,
+  FileText, Hash, MapPin, Heart, Users, Zap, Star,
+  Globe, ChevronDown, ChevronUp, Volume2, VolumeX
 } from 'lucide-react';
-import { AppState, AIPersonality, PaymentMethod, UserRole, DriverRank } from '../../types';
+import { AppState, AIPersonality, PaymentMethod, UserRole, DriverRank, Language, LanguageOption } from '../../types';
 
 interface SettingsOverlayProps {
   appState: AppState;
@@ -15,9 +16,47 @@ interface SettingsOverlayProps {
   onClose: () => void;
 }
 
+// Zimbabwe Languages (Progenitor Country) - All 16 official languages
+const zimbabweLanguages: LanguageOption[] = [
+  { code: Language.SHONA, name: 'Shona', nativeName: 'chiShona', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.NDEBELE, name: 'Ndebele', nativeName: 'isiNdebele', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.ENGLISH_ZW, name: 'English (Zimbabwe)', nativeName: 'English', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.TONGA, name: 'Tonga', nativeName: 'chiTonga', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.SHANGANI, name: 'Shangani', nativeName: 'xiTsonga', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.VENDA, name: 'Venda', nativeName: 'tshiVenḓa', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.KALANGA, name: 'Kalanga', nativeName: 'Kalanga', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.NAMBYA, name: 'Nambya', nativeName: 'chiNambya', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.SOTHO, name: 'Sotho', nativeName: 'Sesotho', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.TSWANA, name: 'Tswana', nativeName: 'Setswana', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.CHIBARWE, name: 'Chibarwe', nativeName: 'chiBarwe', flag: '🇿🇼', isZimbabwean: true },
+  { code: Language.SIGN_LANGUAGE_ZW, name: 'Zimbabwe Sign Language', nativeName: 'ZSL', flag: '🇿🇼', isZimbabwean: true },
+];
+
+// Other African Languages
+const africanLanguages: LanguageOption[] = [
+  { code: Language.SWAHILI, name: 'Swahili', nativeName: 'Kiswahili', flag: '🌍' },
+  { code: Language.ZULU, name: 'Zulu', nativeName: 'isiZulu', flag: '🇿🇦' },
+  { code: Language.XHOSA, name: 'Xhosa', nativeName: 'isiXhosa', flag: '🇿🇦' },
+  { code: Language.AFRIKAANS, name: 'Afrikaans', nativeName: 'Afrikaans', flag: '🇿🇦' },
+];
+
+// International Languages
+const internationalLanguages: LanguageOption[] = [
+  { code: Language.ENGLISH, name: 'English (International)', nativeName: 'English', flag: '🌐' },
+  { code: Language.FRENCH, name: 'French', nativeName: 'Français', flag: '🇫🇷' },
+  { code: Language.PORTUGUESE, name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹' },
+  { code: Language.SPANISH, name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  { code: Language.CHINESE, name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
+  { code: Language.ARABIC, name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦' },
+];
+
 const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState, onClose }) => {
   const personalities = Object.values(AIPersonality);
   const isDriver = appState.userRole === UserRole.DRIVER;
+
+  const [showZimbabweLanguages, setShowZimbabweLanguages] = useState(false);
+  const [showAfricanLanguages, setShowAfricanLanguages] = useState(false);
+  const [showInternationalLanguages, setShowInternationalLanguages] = useState(false);
 
   const paymentMethods = [
     { id: PaymentMethod.CARD, icon: CreditCard, label: 'Cloud Card' },
@@ -196,6 +235,206 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState
                   </div>
                 </button>
               ))}
+           </div>
+        </div>
+
+        {/* Language & Region Settings */}
+        <div className="space-y-4">
+           <div className="flex items-center justify-between px-4">
+              <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Language Node</h3>
+              <Globe className="w-3 h-3 text-indigo-500" />
+           </div>
+           <div className="bg-[#0f0f12] border border-white/5 rounded-[2.5rem] p-6 space-y-3">
+              {/* Current Language Display */}
+              <div className="p-4 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{zimbabweLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
+                      africanLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
+                      internationalLanguages.find(l => l.code === appState.preferredLanguage)?.flag || '🌐'}</span>
+                    <div>
+                      <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Active Language</p>
+                      <p className="text-xs font-black text-white italic">
+                        {zimbabweLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                          africanLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                          internationalLanguages.find(l => l.code === appState.preferredLanguage)?.name || 'English'}
+                      </p>
+                    </div>
+                  </div>
+                  <Check className="w-5 h-5 text-indigo-400" />
+                </div>
+              </div>
+
+              {/* Zimbabwe Languages (Progenitor Country) - Featured First */}
+              <div className="border border-amber-500/30 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500/5 to-transparent">
+                <button
+                  onClick={() => setShowZimbabweLanguages(!showZimbabweLanguages)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <span className="text-2xl">🇿🇼</span>
+                      <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-black text-white uppercase italic tracking-wider">Zimbabwe</p>
+                      <p className="text-[7px] text-amber-400 font-black uppercase tracking-widest">Progenitor Country • 12 Languages</p>
+                    </div>
+                  </div>
+                  {showZimbabweLanguages ? <ChevronUp className="w-4 h-4 text-amber-400" /> : <ChevronDown className="w-4 h-4 text-amber-400" />}
+                </button>
+
+                {showZimbabweLanguages && (
+                  <div className="px-3 pb-3 space-y-1.5 bg-black/20">
+                    {zimbabweLanguages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          updateState({ preferredLanguage: lang.code });
+                          if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                            navigator.vibrate(10);
+                          }
+                        }}
+                        className={`w-full p-3 rounded-xl flex items-center justify-between transition-all ${
+                          appState.preferredLanguage === lang.code
+                            ? 'bg-amber-600 border border-amber-400 text-white shadow-lg'
+                            : 'bg-black/40 border border-white/5 hover:border-amber-500/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{lang.flag}</span>
+                          <div className="text-left">
+                            <p className="text-[9px] font-black text-white uppercase tracking-wider">{lang.name}</p>
+                            <p className="text-[7px] text-gray-400 font-bold">{lang.nativeName}</p>
+                          </div>
+                        </div>
+                        {appState.preferredLanguage === lang.code && (
+                          <Check className="w-4 h-4 text-white stroke-[3px]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Other African Languages */}
+              <div className="border border-white/5 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setShowAfricanLanguages(!showAfricanLanguages)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🌍</span>
+                    <div className="text-left">
+                      <p className="text-xs font-black text-white uppercase italic tracking-wider">Other African Languages</p>
+                      <p className="text-[7px] text-gray-500 font-black uppercase tracking-widest">{africanLanguages.length} Languages</p>
+                    </div>
+                  </div>
+                  {showAfricanLanguages ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </button>
+
+                {showAfricanLanguages && (
+                  <div className="px-3 pb-3 space-y-1.5 bg-black/20">
+                    {africanLanguages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          updateState({ preferredLanguage: lang.code });
+                          if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                            navigator.vibrate(10);
+                          }
+                        }}
+                        className={`w-full p-3 rounded-xl flex items-center justify-between transition-all ${
+                          appState.preferredLanguage === lang.code
+                            ? 'bg-indigo-600 border border-indigo-400 text-white shadow-lg'
+                            : 'bg-black/40 border border-white/5 hover:border-indigo-500/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{lang.flag}</span>
+                          <div className="text-left">
+                            <p className="text-[9px] font-black text-white uppercase tracking-wider">{lang.name}</p>
+                            <p className="text-[7px] text-gray-400 font-bold">{lang.nativeName}</p>
+                          </div>
+                        </div>
+                        {appState.preferredLanguage === lang.code && (
+                          <Check className="w-4 h-4 text-white stroke-[3px]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* International Languages */}
+              <div className="border border-white/5 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setShowInternationalLanguages(!showInternationalLanguages)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🌐</span>
+                    <div className="text-left">
+                      <p className="text-xs font-black text-white uppercase italic tracking-wider">International Languages</p>
+                      <p className="text-[7px] text-gray-500 font-black uppercase tracking-widest">{internationalLanguages.length} Languages</p>
+                    </div>
+                  </div>
+                  {showInternationalLanguages ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </button>
+
+                {showInternationalLanguages && (
+                  <div className="px-3 pb-3 space-y-1.5 bg-black/20">
+                    {internationalLanguages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          updateState({ preferredLanguage: lang.code });
+                          if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                            navigator.vibrate(10);
+                          }
+                        }}
+                        className={`w-full p-3 rounded-xl flex items-center justify-between transition-all ${
+                          appState.preferredLanguage === lang.code
+                            ? 'bg-indigo-600 border border-indigo-400 text-white shadow-lg'
+                            : 'bg-black/40 border border-white/5 hover:border-indigo-500/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{lang.flag}</span>
+                          <div className="text-left">
+                            <p className="text-[9px] font-black text-white uppercase tracking-wider">{lang.name}</p>
+                            <p className="text-[7px] text-gray-400 font-bold">{lang.nativeName}</p>
+                          </div>
+                        </div>
+                        {appState.preferredLanguage === lang.code && (
+                          <Check className="w-4 h-4 text-white stroke-[3px]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+           </div>
+        </div>
+
+        {/* Notifications & Sound Settings */}
+        <div className="space-y-4">
+           <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-4">System Alerts</h3>
+           <div className="bg-[#0f0f12] border border-white/5 rounded-[2.5rem] p-6 space-y-4">
+              <ToggleRow
+                label="Push Notifications"
+                desc="Real-time ride & system alerts"
+                icon={Bell}
+                active={appState.notificationsEnabled}
+                onClick={() => updateState({ notificationsEnabled: !appState.notificationsEnabled })}
+              />
+              <ToggleRow
+                label="Sound Effects"
+                desc="Audio feedback for events"
+                icon={appState.soundEnabled ? Volume2 : VolumeX}
+                active={appState.soundEnabled}
+                onClick={() => updateState({ soundEnabled: !appState.soundEnabled })}
+              />
            </div>
         </div>
 

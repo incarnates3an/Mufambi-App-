@@ -35,6 +35,42 @@ export enum AIPersonality {
   ENERGETIC = 'Energetic'
 }
 
+export enum Language {
+  // Zimbabwe Languages (Progenitor Country)
+  SHONA = 'sn',
+  NDEBELE = 'nd',
+  ENGLISH_ZW = 'en-ZW',
+  TONGA = 'to',
+  SHANGANI = 'ts',
+  VENDA = 've',
+  KALANGA = 'kck',
+  NAMBYA = 'nmb',
+  SOTHO = 'st',
+  TSWANA = 'tn',
+  CHIBARWE = 'mxc',
+  SIGN_LANGUAGE_ZW = 'zsl',
+  // Other African Languages
+  SWAHILI = 'sw',
+  ZULU = 'zu',
+  XHOSA = 'xh',
+  AFRIKAANS = 'af',
+  // International Languages
+  ENGLISH = 'en',
+  FRENCH = 'fr',
+  PORTUGUESE = 'pt',
+  SPANISH = 'es',
+  CHINESE = 'zh',
+  ARABIC = 'ar'
+}
+
+export interface LanguageOption {
+  code: Language;
+  name: string;
+  nativeName: string;
+  flag?: string;
+  isZimbabwean?: boolean;
+}
+
 export interface Location {
   lat: number;
   lng: number;
@@ -105,4 +141,7 @@ export interface AppState {
   // SETTINGS TOGGLES
   hapticsEnabled: boolean;
   biometricsEnabled: boolean;
+  preferredLanguage: Language;
+  notificationsEnabled: boolean;
+  soundEnabled: boolean;
 }
