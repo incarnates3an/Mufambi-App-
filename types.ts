@@ -96,8 +96,50 @@ export interface DriverBid {
 export interface Message {
   id: string;
   senderId: string;
+  senderName: string;
+  senderRole: 'driver' | 'passenger';
   text: string;
   timestamp: number;
+  rideId?: string; // Link message to specific ride for evidence
+  read: boolean;
+}
+
+export interface RideMessageHistory {
+  rideId: string;
+  driverId: string;
+  driverName: string;
+  passengerId: string;
+  passengerName: string;
+  messages: Message[];
+  createdAt: number;
+  lastMessageAt: number;
+}
+
+export enum ReportReason {
+  HARASSMENT = 'Sexual Harassment',
+  INAPPROPRIATE_LANGUAGE = 'Inappropriate Language',
+  THREATENING_BEHAVIOR = 'Threatening Behavior',
+  UNSAFE_DRIVING = 'Unsafe Driving',
+  DISCRIMINATION = 'Discrimination',
+  SCAM_ATTEMPT = 'Scam or Fraud Attempt',
+  OTHER = 'Other'
+}
+
+export interface Report {
+  id: string;
+  reporterId: string;
+  reporterName: string;
+  reporterRole: 'driver' | 'passenger';
+  reportedUserId: string;
+  reportedUserName: string;
+  reportedUserRole: 'driver' | 'passenger';
+  reason: ReportReason;
+  description: string;
+  rideId: string;
+  messageHistory: Message[]; // Preserved evidence
+  screenshots?: string[]; // Base64 encoded screenshots
+  timestamp: number;
+  status: 'pending' | 'under_review' | 'resolved' | 'dismissed';
 }
 
 export interface Buddy {
@@ -140,6 +182,9 @@ export interface AppState {
   buddies: Buddy[];
   safeCircleContacts: SafeCircleContact[];
   isSafetyMonitoringActive: boolean;
+  messageHistory: RideMessageHistory[];
+  blockedUsers: string[]; // Array of blocked user IDs
+  reports: Report[];
   // PERFORMANCE METRICS
   completedRides: number;
   avgResponseTime: number; 

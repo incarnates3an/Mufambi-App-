@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact } from '../../types';
+import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact, Message, Report } from '../../types';
 import EntertainmentHub from '../Entertainment/Hub';
 import PaymentModal from './PaymentModal';
 import BuddyHub from './BuddyHub';
 import Map from '../Shared/Map';
 import SafeCircleOverlay from './SafeCircleOverlay';
 import ShareRideOverlay from './ShareRideOverlay';
+import MessageCenter from './MessageCenter';
 import { BidListSkeleton } from '../Shared/LoadingSkeletons';
 import Button from '../Shared/Button';
 import EmptyState from '../Shared/EmptyState';
@@ -39,6 +40,7 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
   const [isBuddyHubOpen, setIsBuddyHubOpen] = useState(false);
   const [isSafetyOpen, setIsSafetyOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
 
   const [prefs, setPrefs] = useState({
     silent: false,
@@ -59,13 +61,17 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
   const creditsUsedValue = useMemo(() => useCredits ? Math.min(offeredPrice, pointsToUSD) : 0, [useCredits, offeredPrice, pointsToUSD]);
   const creditsUsedPoints = useMemo(() => creditsUsedValue * 100, [creditsUsedValue]);
 
-  // Memoize mock bids to prevent recreation on every render
-  const MOCK_BIDS = useMemo<DriverBid[]>(() => [
-    { id: '1', driverName: 'James T.', rating: 5.0, carModel: 'Mercedes EQE', price: offeredPrice, eta: 3, rank: DriverRank.ELITE, acceptsCredits: true },
-    { id: '2', driverName: 'Sarah M.', rating: 4.8, carModel: 'Toyota Camry', price: offeredPrice + 1.5, eta: 6, rank: DriverRank.GOLD, acceptsCredits: false },
-    { id: '3', driverName: 'Michael K.', rating: 4.7, carModel: 'Honda Accord', price: offeredPrice - 0.5, eta: 8, rank: DriverRank.SILVER, acceptsCredits: false },
-    { id: '4', driverName: 'Chenai P.', rating: 4.4, carModel: 'Nissan Leaf', price: offeredPrice - 1.0, eta: 11, rank: DriverRank.BRONZE, acceptsCredits: false },
-  ], [offeredPrice]);
+  // Memoize mock bids to prevent recreation on every render, filter out blocked drivers
+  const MOCK_BIDS = useMemo<DriverBid[]>(() => {
+    const allBids = [
+      { id: '1', driverName: 'James T.', rating: 5.0, carModel: 'Mercedes EQE', price: offeredPrice, eta: 3, rank: DriverRank.ELITE, acceptsCredits: true },
+      { id: '2', driverName: 'Sarah M.', rating: 4.8, carModel: 'Toyota Camry', price: offeredPrice + 1.5, eta: 6, rank: DriverRank.GOLD, acceptsCredits: false },
+      { id: '3', driverName: 'Michael K.', rating: 4.7, carModel: 'Honda Accord', price: offeredPrice - 0.5, eta: 8, rank: DriverRank.SILVER, acceptsCredits: false },
+      { id: '4', driverName: 'Chenai P.', rating: 4.4, carModel: 'Nissan Leaf', price: offeredPrice - 1.0, eta: 11, rank: DriverRank.BRONZE, acceptsCredits: false },
+    ];
+    // Filter out blocked drivers
+    return allBids.filter(bid => !appState.blockedUsers.includes(bid.id));
+  }, [offeredPrice, appState.blockedUsers]);
 
   // OPTIMIZED DESTINATION SEARCH with debounce
   useEffect(() => {
@@ -158,6 +164,86 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
     setFeedback("");
     updateState({ rideStatus: RideStatus.IDLE, activeBid: null, destination: null });
   }, [rating, addNotification, updateState]);
+
+  // Message Center Handlers
+  const getCurrentRideId = useCallback(() => {
+    return `ride-${Date.now()}-${appState.activeBid?.id || 'unknown'}`;
+  }, [appState.activeBid]);
+
+  const getCurrentRideMessages = useMemo(() => {
+    if (!appState.activeBid) return [];
+    const rideHistory = appState.messageHistory.find(
+      history => history.driverId === appState.activeBid?.id &&
+      history.passengerId === appState.userName
+    );
+    return rideHistory?.messages || [];
+  }, [appState.messageHistory, appState.activeBid, appState.userName]);
+
+  const handleSendMessage = useCallback((text: string) => {
+    if (!appState.activeBid) return;
+
+    const newMessage: Message = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      senderId: appState.userName,
+      senderName: appState.userName,
+      senderRole: 'passenger',
+      text,
+      timestamp: Date.now(),
+      rideId: getCurrentRideId(),
+      read: false
+    };
+
+    // Find or create ride message history
+    const existingHistoryIndex = appState.messageHistory.findIndex(
+      history => history.driverId === appState.activeBid?.id &&
+      history.passengerId === appState.userName
+    );
+
+    let updatedHistory = [...appState.messageHistory];
+
+    if (existingHistoryIndex >= 0) {
+      // Update existing history
+      updatedHistory[existingHistoryIndex] = {
+        ...updatedHistory[existingHistoryIndex],
+        messages: [...updatedHistory[existingHistoryIndex].messages, newMessage],
+        lastMessageAt: Date.now()
+      };
+    } else {
+      // Create new history
+      updatedHistory.push({
+        rideId: getCurrentRideId(),
+        driverId: appState.activeBid.id,
+        driverName: appState.activeBid.driverName,
+        passengerId: appState.userName,
+        passengerName: appState.userName,
+        messages: [newMessage],
+        createdAt: Date.now(),
+        lastMessageAt: Date.now()
+      });
+    }
+
+    updateState({ messageHistory: updatedHistory });
+    addNotification('Message sent and saved permanently', 'success');
+  }, [appState.activeBid, appState.userName, appState.messageHistory, updateState, addNotification, getCurrentRideId]);
+
+  const handleReportDriver = useCallback((report: Omit<Report, 'id' | 'timestamp' | 'status'>) => {
+    const newReport: Report = {
+      ...report,
+      id: `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      status: 'pending'
+    };
+
+    updateState({ reports: [...appState.reports, newReport] });
+    addNotification('Report submitted. Our safety team will review within 24 hours.', 'success');
+  }, [appState.reports, updateState, addNotification]);
+
+  const handleBlockDriver = useCallback((driverId: string) => {
+    if (!appState.blockedUsers.includes(driverId)) {
+      updateState({ blockedUsers: [...appState.blockedUsers, driverId] });
+      addNotification('Driver blocked. You will no longer receive bids from them.', 'success');
+    }
+  }, [appState.blockedUsers, updateState, addNotification]);
 
   const categories = [
     { id: 'BASIC' as RideCategory, name: 'Neural Basic', price: 10, icon: Car, desc: 'Efficient city travel' },
@@ -465,18 +551,29 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
                   </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-4">
-                  <button 
+               <div className="grid grid-cols-3 gap-3">
+                  <button
                     onClick={() => setIsEntertainmentOpen(true)}
-                    className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-all shadow-xl"
+                    className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-all shadow-xl"
                   >
-                     <PlayCircle className="w-4 h-4" /> Entertainment
+                     <PlayCircle className="w-4 h-4" /> Media
                   </button>
-                  <button 
-                    onClick={() => setIsShareOpen(true)}
-                    className="flex items-center justify-center gap-3 py-4 bg-indigo-600 border border-indigo-400 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+                  <button
+                    onClick={() => setIsMessageCenterOpen(true)}
+                    className="flex items-center justify-center gap-2 py-4 bg-green-600/20 border border-green-500/30 rounded-2xl text-[10px] font-black uppercase tracking-widest text-green-400 hover:text-green-300 transition-all shadow-xl relative"
                   >
-                     <Share2 className="w-4 h-4" /> Share Ride
+                     <MessageSquare className="w-4 h-4" /> Chat
+                     {getCurrentRideMessages.length > 0 && (
+                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 border-2 border-[#0f0f12] rounded-full flex items-center justify-center">
+                         <span className="text-[8px] font-black text-white">{getCurrentRideMessages.length}</span>
+                       </div>
+                     )}
+                  </button>
+                  <button
+                    onClick={() => setIsShareOpen(true)}
+                    className="flex items-center justify-center gap-2 py-4 bg-indigo-600 border border-indigo-400 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+                  >
+                     <Share2 className="w-4 h-4" /> Share
                   </button>
                </div>
             </div>
@@ -535,6 +632,21 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
         />
       )}
       {isBuddyHubOpen && <BuddyHub onClose={() => setIsBuddyHubOpen(false)} userMood={appState.mood} rideStatus={appState.rideStatus} preferredLanguage={appState.preferredLanguage} />}
+
+      {isMessageCenterOpen && appState.activeBid && (
+        <MessageCenter
+          driver={appState.activeBid}
+          currentUserId={appState.userName}
+          currentUserName={appState.userName}
+          rideId={getCurrentRideId()}
+          messages={getCurrentRideMessages}
+          onSendMessage={handleSendMessage}
+          onReportDriver={handleReportDriver}
+          onBlockDriver={handleBlockDriver}
+          onClose={() => setIsMessageCenterOpen(false)}
+        />
+      )}
+
       {appState.rideStatus === RideStatus.PAYMENT_PENDING && (
         <PaymentModal
           amount={finalPrice}

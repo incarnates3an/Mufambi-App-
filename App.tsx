@@ -47,6 +47,9 @@ const App: React.FC = () => {
     buddies: [],
     safeCircleContacts: MOCK_SAFE_CIRCLE,
     isSafetyMonitoringActive: false,
+    messageHistory: [],
+    blockedUsers: [],
+    reports: [],
     completedRides: 188,
     avgResponseTime: 6.2,
     driverRating: 4.88,
@@ -146,6 +149,37 @@ const App: React.FC = () => {
       addNotification("Device lacks Localization Hardware", 'error');
     }
   }, [appState.isLoggedIn]); // Only run when login status changes
+
+  // SAFETY FEATURES: Load persistent message history, blocked users, and reports from localStorage
+  useEffect(() => {
+    try {
+      const savedMessageHistory = localStorage.getItem('mufambi_message_history');
+      const savedBlockedUsers = localStorage.getItem('mufambi_blocked_users');
+      const savedReports = localStorage.getItem('mufambi_reports');
+
+      if (savedMessageHistory || savedBlockedUsers || savedReports) {
+        setAppState(prev => ({
+          ...prev,
+          messageHistory: savedMessageHistory ? JSON.parse(savedMessageHistory) : prev.messageHistory,
+          blockedUsers: savedBlockedUsers ? JSON.parse(savedBlockedUsers) : prev.blockedUsers,
+          reports: savedReports ? JSON.parse(savedReports) : prev.reports
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load safety data from localStorage:', error);
+    }
+  }, []); // Run once on mount
+
+  // SAFETY FEATURES: Persist message history, blocked users, and reports to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('mufambi_message_history', JSON.stringify(appState.messageHistory));
+      localStorage.setItem('mufambi_blocked_users', JSON.stringify(appState.blockedUsers));
+      localStorage.setItem('mufambi_reports', JSON.stringify(appState.reports));
+    } catch (error) {
+      console.error('Failed to save safety data to localStorage:', error);
+    }
+  }, [appState.messageHistory, appState.blockedUsers, appState.reports]);
 
   const handleLogin = (role: UserRole) => {
     updateState({ userRole: role, isLoggedIn: true });
