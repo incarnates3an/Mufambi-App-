@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact, Message, Report } from '../../types';
+import { UserRole, AppState, RideStatus, DriverBid, DriverRank, PaymentMethod, SafeCircleContact, Message, Report, RideTransaction } from '../../types';
 import EntertainmentHub from '../Entertainment/Hub';
 import PaymentModal from './PaymentModal';
 import BuddyHub from './BuddyHub';
@@ -13,6 +13,7 @@ import Button from '../Shared/Button';
 import EmptyState from '../Shared/EmptyState';
 import { useDebounce } from '../../hooks/useDebounce';
 import { searchPlaces } from '../../services/location';
+import { createRideTransaction, updateCompanyWallet, completeTransaction } from '../../services/commission';
 import {
   Search, MapPin, Star, Car, Shield, Leaf,
   Smile, Music, Users, Plus, Minus, X, Check,
@@ -146,16 +147,43 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
     setTimeout(() => updateState({ rideStatus: RideStatus.IN_PROGRESS }), 4000);
   }, [useCredits, addNotification, updateState]);
 
-  const handlePaymentComplete = useCallback(() => {
+  const handlePaymentComplete = useCallback((transactionData: Omit<RideTransaction, 'id' | 'rideId' | 'driverId' | 'driverName' | 'passengerId' | 'passengerName' | 'timestamp'>) => {
+    if (!appState.activeBid) return;
+
     const pointsEarned = offeredPrice >= 7 ? 5 : 0;
+
+    // Create full ride transaction
+    const transaction = createRideTransaction(
+      getCurrentRideId(),
+      appState.activeBid.id,
+      appState.activeBid.driverName,
+      appState.userName,
+      appState.userName,
+      transactionData.fareAmount,
+      appState.activeBid.rank,
+      transactionData.paymentMethod,
+      appState.commissionConfig
+    );
+
+    // Complete transaction and update wallet
+    const { wallet: updatedWallet, transaction: completedTransaction } = completeTransaction(
+      appState.companyWallet,
+      transaction
+    );
+
+    // Update app state with transaction and wallet
     updateState({
       rideStatus: RideStatus.COMPLETED,
-      loyaltyPoints: appState.loyaltyPoints - creditsUsedPoints + pointsEarned
+      loyaltyPoints: appState.loyaltyPoints - creditsUsedPoints + pointsEarned,
+      rideTransactions: [...appState.rideTransactions, completedTransaction],
+      companyWallet: updatedWallet
     });
+
     if (pointsEarned > 0) addNotification(`+${pointsEarned} Points earned!`, 'success');
+    addNotification(`Commission: $${completedTransaction.commissionAmount.toFixed(2)} collected`, 'info');
     setUseCredits(false);
     setShowRatingModal(true);
-  }, [offeredPrice, creditsUsedPoints, appState.loyaltyPoints, updateState, addNotification]);
+  }, [appState.activeBid, appState.userName, appState.loyaltyPoints, appState.rideTransactions, appState.companyWallet, appState.commissionConfig, offeredPrice, creditsUsedPoints, updateState, addNotification, getCurrentRideId]);
 
   const submitRating = useCallback(() => {
     addNotification(`${rating} Star rating submitted!`, 'success');
@@ -647,10 +675,12 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
         />
       )}
 
-      {appState.rideStatus === RideStatus.PAYMENT_PENDING && (
+      {appState.rideStatus === RideStatus.PAYMENT_PENDING && appState.activeBid && (
         <PaymentModal
           amount={finalPrice}
           creditsUsed={creditsUsedPoints}
+          driverRank={appState.activeBid.rank}
+          paymentMethod={appState.selectedPaymentMethod}
           onComplete={handlePaymentComplete}
           onCancel={() => updateState({ rideStatus: RideStatus.IN_PROGRESS })}
         />

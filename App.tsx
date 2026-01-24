@@ -7,6 +7,7 @@ import { ToastContainer, useToast } from './components/Shared/Toast';
 import { FullScreenLoader } from './components/Shared/LoadingSkeletons';
 import { Bell, User, MapPin } from 'lucide-react';
 import { reverseGeocode } from './services/location';
+import { DEFAULT_COMMISSION_CONFIG } from './services/commission';
 
 // Lazy load heavy components for better initial load performance
 const PassengerDashboard = lazy(() => import('./components/Passenger/Dashboard'));
@@ -14,6 +15,7 @@ const DriverDashboard = lazy(() => import('./components/Driver/Dashboard'));
 const AICompanion = lazy(() => import('./components/AI/Companion'));
 const SettingsOverlay = lazy(() => import('./components/Shared/SettingsOverlay'));
 const WalletOverlay = lazy(() => import('./components/Passenger/WalletOverlay'));
+const CompanyDashboard = lazy(() => import('./components/Admin/CompanyDashboard'));
 
 const INITIAL_LOCATION = { lat: -17.8248, lng: 31.0530, address: "Harare City Centre Node" };
 
@@ -50,6 +52,16 @@ const App: React.FC = () => {
     messageHistory: [],
     blockedUsers: [],
     reports: [],
+    rideTransactions: [],
+    companyWallet: {
+      totalRevenue: 0,
+      pendingCommission: 0,
+      completedCommission: 0,
+      totalTransactions: 0,
+      lastUpdated: Date.now(),
+      bankAccountLinked: false
+    },
+    commissionConfig: DEFAULT_COMMISSION_CONFIG,
     completedRides: 188,
     avgResponseTime: 6.2,
     driverRating: 4.88,
@@ -62,9 +74,26 @@ const App: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [isCompanyDashboardOpen, setIsCompanyDashboardOpen] = useState(false);
 
   const lastGeocodeRef = useRef(0);
   const geocodeInProgress = useRef(false);
+
+  // Company wallet bank account update handler
+  const handleUpdateBankAccount = (details: {
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+    routingNumber?: string;
+  }) => {
+    updateState({
+      companyWallet: {
+        ...appState.companyWallet,
+        bankAccountLinked: true,
+        bankAccountDetails: details
+      }
+    });
+  };
 
   const updateState = (updates: Partial<AppState>) => {
     setAppState(prev => ({ ...prev, ...updates }));
@@ -170,6 +199,24 @@ const App: React.FC = () => {
     }
   }, []); // Run once on mount
 
+  // COMMISSION SYSTEM: Load persistent financial data from localStorage
+  useEffect(() => {
+    try {
+      const savedWallet = localStorage.getItem('mufambi_company_wallet');
+      const savedTransactions = localStorage.getItem('mufambi_transactions');
+
+      if (savedWallet || savedTransactions) {
+        setAppState(prev => ({
+          ...prev,
+          companyWallet: savedWallet ? JSON.parse(savedWallet) : prev.companyWallet,
+          rideTransactions: savedTransactions ? JSON.parse(savedTransactions) : prev.rideTransactions
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load financial data from localStorage:', error);
+    }
+  }, []); // Run once on mount
+
   // SAFETY FEATURES: Persist message history, blocked users, and reports to localStorage
   useEffect(() => {
     try {
@@ -180,6 +227,16 @@ const App: React.FC = () => {
       console.error('Failed to save safety data to localStorage:', error);
     }
   }, [appState.messageHistory, appState.blockedUsers, appState.reports]);
+
+  // COMMISSION SYSTEM: Persist financial data to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('mufambi_company_wallet', JSON.stringify(appState.companyWallet));
+      localStorage.setItem('mufambi_transactions', JSON.stringify(appState.rideTransactions));
+    } catch (error) {
+      console.error('Failed to save financial data to localStorage:', error);
+    }
+  }, [appState.companyWallet, appState.rideTransactions]);
 
   const handleLogin = (role: UserRole) => {
     updateState({ userRole: role, isLoggedIn: true });
@@ -213,6 +270,17 @@ const App: React.FC = () => {
             appState={appState}
             updateState={updateState}
             onClose={() => setIsSettingsOpen(false)}
+            onOpenCompanyDashboard={() => setIsCompanyDashboardOpen(true)}
+          />
+        )}
+
+        {isCompanyDashboardOpen && (
+          <CompanyDashboard
+            wallet={appState.companyWallet}
+            transactions={appState.rideTransactions}
+            commissionConfig={appState.commissionConfig}
+            onClose={() => setIsCompanyDashboardOpen(false)}
+            onUpdateBankAccount={handleUpdateBankAccount}
           />
         )}
 

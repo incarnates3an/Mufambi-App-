@@ -225,6 +225,56 @@ export interface Report {
   status: 'pending' | 'under_review' | 'resolved' | 'dismissed';
 }
 
+// Commission & Financial System
+export interface CommissionRate {
+  driverRank: DriverRank;
+  percentage: number; // e.g., 12 for 12%
+  description: string;
+}
+
+export interface RideTransaction {
+  id: string;
+  rideId: string;
+  driverId: string;
+  driverName: string;
+  passengerId: string;
+  passengerName: string;
+  fareAmount: number; // Total fare charged to passenger
+  commissionRate: number; // Commission percentage applied
+  commissionAmount: number; // Amount taken as commission
+  driverEarnings: number; // Amount driver receives (fare - commission)
+  paymentMethod: PaymentMethod;
+  timestamp: number;
+  status: 'pending' | 'completed' | 'disputed' | 'refunded';
+  processingFee?: number; // Optional payment processing fee
+}
+
+export interface CompanyWallet {
+  totalRevenue: number; // Total commission collected
+  pendingCommission: number; // Commission from pending/processing transactions
+  completedCommission: number; // Commission from completed transactions
+  totalTransactions: number;
+  lastUpdated: number;
+  bankAccountLinked: boolean;
+  bankAccountDetails?: {
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+    routingNumber?: string;
+  };
+}
+
+export interface CommissionConfig {
+  commissionRates: CommissionRate[];
+  processingFees: {
+    CASH: number; // 0% for cash
+    CARD: number; // e.g., 2.9% for card processing
+    PAYPAL: number; // e.g., 3.5% for PayPal
+    ECOCASH: number; // e.g., 1.5% for EcoCash
+  };
+  minimumCommission: number; // Minimum commission per ride (e.g., $0.50)
+}
+
 export interface Buddy {
   id: string;
   name: string;
@@ -268,9 +318,13 @@ export interface AppState {
   messageHistory: RideMessageHistory[];
   blockedUsers: string[]; // Array of blocked user IDs
   reports: Report[];
+  // COMMISSION & FINANCIAL SYSTEM
+  rideTransactions: RideTransaction[];
+  companyWallet: CompanyWallet;
+  commissionConfig: CommissionConfig;
   // PERFORMANCE METRICS
   completedRides: number;
-  avgResponseTime: number; 
+  avgResponseTime: number;
   driverRating: number;
   // SETTINGS TOGGLES
   hapticsEnabled: boolean;

@@ -6,7 +6,7 @@ import {
   Leaf, Trophy, Settings as SettingsIcon, Check,
   Sparkles, Wallet, Smartphone, DollarSign, Car,
   FileText, Hash, MapPin, Heart, Users, Zap, Star,
-  Globe, ChevronDown, ChevronUp, Volume2, VolumeX
+  Globe, ChevronDown, ChevronUp, Volume2, VolumeX, Building2, TrendingUp
 } from 'lucide-react';
 import { AppState, AIPersonality, AIProvider, PaymentMethod, UserRole, DriverRank, Language, LanguageOption } from '../../types';
 
@@ -14,6 +14,7 @@ interface SettingsOverlayProps {
   appState: AppState;
   updateState: (updates: Partial<AppState>) => void;
   onClose: () => void;
+  onOpenCompanyDashboard?: () => void;
 }
 
 // Zimbabwe Languages (Progenitor Country) - All 16 official languages
@@ -136,7 +137,7 @@ const otherLanguages: LanguageOption[] = [
   { code: Language.YIDDISH, name: 'Yiddish', nativeName: 'ייִדיש', flag: '🌍' },
 ];
 
-const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState, onClose }) => {
+const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState, onClose, onOpenCompanyDashboard }) => {
   const personalities = Object.values(AIPersonality);
   const isDriver = appState.userRole === UserRole.DRIVER;
 
@@ -701,8 +702,25 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-4 pb-12">
-          <button 
+        <div className="pt-4 pb-12 space-y-4">
+          {/* Company Dashboard Access */}
+          {onOpenCompanyDashboard && (
+            <button
+              onClick={() => {
+                onOpenCompanyDashboard();
+                onClose();
+              }}
+              className="w-full py-6 bg-green-600/10 border border-green-500/20 text-green-500 rounded-[2.5rem] font-black uppercase tracking-[0.3em] italic flex items-center justify-center gap-3 hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-2xl"
+            >
+              <Building2 className="w-5 h-5" />
+              <div className="text-left">
+                <p className="text-xs">Company Dashboard</p>
+                <p className="text-[7px] font-bold opacity-70 tracking-wider">View Commission & Revenue</p>
+              </div>
+            </button>
+          )}
+
+          <button
             onClick={handleLogout}
             className="w-full py-6 bg-red-600/10 border border-red-500/20 text-red-500 rounded-[2.5rem] font-black uppercase tracking-[0.3em] italic flex items-center justify-center gap-3 hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-2xl"
           >

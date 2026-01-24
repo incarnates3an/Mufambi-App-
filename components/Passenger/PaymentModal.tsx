@@ -1,18 +1,25 @@
 
 import React, { useState } from 'react';
-import { X, CreditCard, DollarSign, Smartphone, CheckCircle2, Loader2, ArrowRight, ExternalLink, Shield, Coins, Building2, UserCheck, Wallet } from 'lucide-react';
-import { PaymentMethod } from '../../types';
+import { X, CreditCard, DollarSign, Smartphone, CheckCircle2, Loader2, ArrowRight, ExternalLink, Shield, Coins, Building2, UserCheck, Wallet, TrendingUp, Award } from 'lucide-react';
+import { PaymentMethod, DriverRank, RideTransaction } from '../../types';
+import { calculateCommission, formatCurrency } from '../../services/commission';
 
 interface PaymentModalProps {
   amount: number;
   creditsUsed: number;
-  onComplete: () => void;
+  driverRank: DriverRank;
+  paymentMethod: PaymentMethod;
+  onComplete: (transaction: Omit<RideTransaction, 'id' | 'rideId' | 'driverId' | 'driverName' | 'passengerId' | 'passengerName' | 'timestamp'>) => void;
   onCancel: () => void;
 }
 
-const PaymentModal: React.FC<PaymentModalProps> = ({ amount, creditsUsed, onComplete, onCancel }) => {
+const PaymentModal: React.FC<PaymentModalProps> = ({ amount, creditsUsed, driverRank, paymentMethod: initialPaymentMethod, onComplete, onCancel }) => {
   const [step, setStep] = useState<'SELECT' | 'PROCESS' | 'SUCCESS'>('SELECT');
-  const [method, setMethod] = useState<PaymentMethod>(PaymentMethod.CARD);
+  const [method, setMethod] = useState<PaymentMethod>(initialPaymentMethod);
+
+  // Calculate commission breakdown
+  const fareAmount = amount;
+  const { commissionRate, commissionAmount, driverEarnings } = calculateCommission(fareAmount, driverRank);
 
   const handlePayment = () => {
     setStep('PROCESS');
@@ -21,9 +28,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, creditsUsed, onComp
     }, 3000);
   };
 
+  const handleComplete = () => {
+    // Create transaction data to pass back
+    const transactionData = {
+      fareAmount,
+      commissionRate,
+      commissionAmount,
+      driverEarnings,
+      paymentMethod: method,
+      status: 'completed' as const,
+      processingFee: 0
+    };
+    onComplete(transactionData);
+  };
+
   const creditUSD = creditsUsed / 100;
-  const driverSplit = creditUSD * 0.9;
-  const companySplit = creditUSD * 0.1;
 
   const paymentOptions = [
     { 
@@ -143,28 +162,53 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, creditsUsed, onComp
                 </div>
               </div>
 
-              {creditsUsed > 0 && (
-                <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-4">
-                   <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Credit Distribution Breakdown</p>
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <div className="p-2 bg-green-500/10 rounded-xl"><UserCheck className="w-4 h-4 text-green-500" /></div>
-                         <span className="text-[10px] font-black text-gray-400 uppercase">Elite Driver (90%)</span>
-                      </div>
-                      <span className="text-xs font-black text-white">+${driverSplit.toFixed(2)}</span>
-                   </div>
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <div className="p-2 bg-indigo-500/10 rounded-xl"><Building2 className="w-4 h-4 text-indigo-400" /></div>
-                         <span className="text-[10px] font-black text-gray-400 uppercase">Mufambi (10%)</span>
-                      </div>
-                      <span className="text-xs font-black text-gray-500">${companySplit.toFixed(2)} Fee</span>
-                   </div>
+              {/* Commission & Payment Breakdown */}
+              <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Payment Breakdown</p>
+                  <div className="px-2 py-1 bg-green-500/10 rounded-full">
+                    <span className="text-[7px] font-black text-green-400 uppercase tracking-wider">Completed</span>
+                  </div>
                 </div>
-              )}
 
-              <button 
-                onClick={onComplete}
+                {/* Total Fare */}
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Total Fare</span>
+                  <span className="text-sm font-black text-white">{formatCurrency(fareAmount)}</span>
+                </div>
+
+                {/* Commission */}
+                <div className="flex items-center justify-between py-1 bg-indigo-500/5 -mx-2 px-2 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 bg-indigo-500/10 rounded"><Building2 className="w-3 h-3 text-indigo-400" /></div>
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider">Mufambi Commission ({commissionRate}%)</span>
+                  </div>
+                  <span className="text-xs font-black text-indigo-400">-{formatCurrency(commissionAmount)}</span>
+                </div>
+
+                {/* Driver Earnings */}
+                <div className="flex items-center justify-between py-1 bg-green-500/5 -mx-2 px-2 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 bg-green-500/10 rounded"><UserCheck className="w-3 h-3 text-green-500" /></div>
+                    <span className="text-[10px] font-black text-green-300 uppercase tracking-wider">Driver Receives</span>
+                  </div>
+                  <span className="text-sm font-black text-green-400">{formatCurrency(driverEarnings)}</span>
+                </div>
+
+                {/* Commission Notice */}
+                <div className="pt-3 border-t border-white/5">
+                  <div className="flex items-start gap-2">
+                    <Award className="w-3 h-3 text-amber-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-[8px] text-gray-500 font-bold leading-relaxed">
+                      {driverRank} drivers enjoy {commissionRate}% commission rate -
+                      {commissionRate <= 10 ? ' beats all major competitors!' : ' competitive market rate'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleComplete}
                 className="w-full py-5 bg-white text-black rounded-[1.5rem] font-black uppercase tracking-[0.1em] shadow-2xl transition-all active:scale-95 hover:bg-gray-100"
               >
                 Close Session
