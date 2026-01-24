@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact, Language } from './types';
+import { UserRole, AppState, RideStatus, AIPersonality, AIProvider, PaymentMethod, DriverRank, Location, SafeCircleContact, Language } from './types';
 import Navigation from './components/Layout/Navigation';
 import Login from './components/Auth/Login';
 import { ToastContainer, useToast } from './components/Shared/Toast';
 import { FullScreenLoader } from './components/Shared/LoadingSkeletons';
 import { Bell, User, MapPin } from 'lucide-react';
-import { reverseGeocode } from './services/gemini';
+import { reverseGeocode } from './services/location';
 
 // Lazy load heavy components for better initial load performance
 const PassengerDashboard = lazy(() => import('./components/Passenger/Dashboard'));
@@ -36,6 +36,7 @@ const App: React.FC = () => {
     activeBid: null,
     mood: 'Neutral',
     aiPersonality: AIPersonality.FRIENDLY,
+    aiProvider: AIProvider.GEMINI,
     isOnline: false,
     earnings: 1250.50,
     carbonOffset: 45.2,
@@ -46,6 +47,9 @@ const App: React.FC = () => {
     buddies: [],
     safeCircleContacts: MOCK_SAFE_CIRCLE,
     isSafetyMonitoringActive: false,
+    messageHistory: [],
+    blockedUsers: [],
+    reports: [],
     completedRides: 188,
     avgResponseTime: 6.2,
     driverRating: 4.88,
@@ -94,13 +98,13 @@ const App: React.FC = () => {
           
           // Use a local variable to hold the address so we don't cause infinite re-renders
           // geocodeInProgress prevents overlapping API calls if geocoding is slow
-          if (now - lastGeocodeRef.current > 20000 && !geocodeInProgress.current) { 
+          if (now - lastGeocodeRef.current > 20000 && !geocodeInProgress.current) {
             geocodeInProgress.current = true;
             try {
-              const address = await reverseGeocode(latitude, longitude);
+              const locationResult = await reverseGeocode(latitude, longitude);
               lastGeocodeRef.current = Date.now();
-              updateState({ 
-                currentLocation: { lat: latitude, lng: longitude, address: address } 
+              updateState({
+                currentLocation: { lat: latitude, lng: longitude, address: locationResult.address }
               });
             } catch (err) {
               console.error("Geocoding failed, keeping coordinates only.");
@@ -145,6 +149,37 @@ const App: React.FC = () => {
       addNotification("Device lacks Localization Hardware", 'error');
     }
   }, [appState.isLoggedIn]); // Only run when login status changes
+
+  // SAFETY FEATURES: Load persistent message history, blocked users, and reports from localStorage
+  useEffect(() => {
+    try {
+      const savedMessageHistory = localStorage.getItem('mufambi_message_history');
+      const savedBlockedUsers = localStorage.getItem('mufambi_blocked_users');
+      const savedReports = localStorage.getItem('mufambi_reports');
+
+      if (savedMessageHistory || savedBlockedUsers || savedReports) {
+        setAppState(prev => ({
+          ...prev,
+          messageHistory: savedMessageHistory ? JSON.parse(savedMessageHistory) : prev.messageHistory,
+          blockedUsers: savedBlockedUsers ? JSON.parse(savedBlockedUsers) : prev.blockedUsers,
+          reports: savedReports ? JSON.parse(savedReports) : prev.reports
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load safety data from localStorage:', error);
+    }
+  }, []); // Run once on mount
+
+  // SAFETY FEATURES: Persist message history, blocked users, and reports to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('mufambi_message_history', JSON.stringify(appState.messageHistory));
+      localStorage.setItem('mufambi_blocked_users', JSON.stringify(appState.blockedUsers));
+      localStorage.setItem('mufambi_reports', JSON.stringify(appState.reports));
+    } catch (error) {
+      console.error('Failed to save safety data to localStorage:', error);
+    }
+  }, [appState.messageHistory, appState.blockedUsers, appState.reports]);
 
   const handleLogin = (role: UserRole) => {
     updateState({ userRole: role, isLoggedIn: true });

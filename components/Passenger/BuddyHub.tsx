@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Users, MessageCircle, Sparkles, Send, Circle, Search, Heart, MapPin, Radio } from 'lucide-react';
-import { Buddy, Message, RideStatus } from '../../types';
+import { Buddy, Message, RideStatus, Language } from '../../types';
 import { getBuddySuggestions } from '../../services/gemini';
 
 interface BuddyHubProps {
   onClose: () => void;
   userMood: string;
   rideStatus: RideStatus;
+  preferredLanguage: Language;
 }
 
-const BuddyHub: React.FC<BuddyHubProps> = ({ onClose, userMood, rideStatus }) => {
+const BuddyHub: React.FC<BuddyHubProps> = ({ onClose, userMood, rideStatus, preferredLanguage }) => {
   const [activeTab, setActiveTab] = useState<'BUDDIES' | 'DISCOVER' | 'CHAT'>('BUDDIES');
   const [selectedBuddy, setSelectedBuddy] = useState<Buddy | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -26,7 +27,7 @@ const BuddyHub: React.FC<BuddyHubProps> = ({ onClose, userMood, rideStatus }) =>
 
   const loadSuggestions = async () => {
     setIsLoading(true);
-    const results = await getBuddySuggestions(userMood, rideStatus);
+    const results = await getBuddySuggestions(userMood, rideStatus, preferredLanguage);
     setSuggestions(results);
     setIsLoading(false);
   };

@@ -35,6 +35,11 @@ export enum AIPersonality {
   ENERGETIC = 'Energetic'
 }
 
+export enum AIProvider {
+  GEMINI = 'Gemini',  // Google Gemini (Free tier available)
+  OPENAI = 'OpenAI'   // OpenAI GPT-4o (Paid, requires API key)
+}
+
 export enum Language {
   // Zimbabwe Languages (Progenitor Country)
   SHONA = 'sn',
@@ -49,18 +54,101 @@ export enum Language {
   TSWANA = 'tn',
   CHIBARWE = 'mxc',
   SIGN_LANGUAGE_ZW = 'zsl',
+
   // Other African Languages
   SWAHILI = 'sw',
   ZULU = 'zu',
   XHOSA = 'xh',
   AFRIKAANS = 'af',
-  // International Languages
+  HAUSA = 'ha',
+  YORUBA = 'yo',
+  IGBO = 'ig',
+  AMHARIC = 'am',
+  OROMO = 'om',
+  SOMALI = 'so',
+  WOLOF = 'wo',
+  KINYARWANDA = 'rw',
+  LINGALA = 'ln',
+  TIGRINYA = 'ti',
+
+  // European Languages
   ENGLISH = 'en',
-  FRENCH = 'fr',
-  PORTUGUESE = 'pt',
   SPANISH = 'es',
+  FRENCH = 'fr',
+  GERMAN = 'de',
+  ITALIAN = 'it',
+  PORTUGUESE = 'pt',
+  RUSSIAN = 'ru',
+  POLISH = 'pl',
+  DUTCH = 'nl',
+  TURKISH = 'tr',
+  GREEK = 'el',
+  SWEDISH = 'sv',
+  NORWEGIAN = 'no',
+  DANISH = 'da',
+  FINNISH = 'fi',
+  CZECH = 'cs',
+  HUNGARIAN = 'hu',
+  ROMANIAN = 'ro',
+  UKRAINIAN = 'uk',
+  CROATIAN = 'hr',
+  SERBIAN = 'sr',
+  BULGARIAN = 'bg',
+  SLOVAK = 'sk',
+  CATALAN = 'ca',
+
+  // Asian Languages
   CHINESE = 'zh',
-  ARABIC = 'ar'
+  HINDI = 'hi',
+  BENGALI = 'bn',
+  URDU = 'ur',
+  PUNJABI = 'pa',
+  JAPANESE = 'ja',
+  KOREAN = 'ko',
+  VIETNAMESE = 'vi',
+  THAI = 'th',
+  INDONESIAN = 'id',
+  MALAY = 'ms',
+  TAGALOG = 'tl',
+  TAMIL = 'ta',
+  TELUGU = 'te',
+  MARATHI = 'mr',
+  GUJARATI = 'gu',
+  KANNADA = 'kn',
+  MALAYALAM = 'ml',
+  BURMESE = 'my',
+  KHMER = 'km',
+  NEPALI = 'ne',
+  SINHALA = 'si',
+
+  // Middle Eastern Languages
+  ARABIC = 'ar',
+  HEBREW = 'he',
+  PERSIAN = 'fa',
+  KURDISH = 'ku',
+
+  // Other Languages
+  ALBANIAN = 'sq',
+  ARMENIAN = 'hy',
+  AZERBAIJANI = 'az',
+  BASQUE = 'eu',
+  BELARUSIAN = 'be',
+  BOSNIAN = 'bs',
+  ESTONIAN = 'et',
+  GALICIAN = 'gl',
+  GEORGIAN = 'ka',
+  ICELANDIC = 'is',
+  KAZAKH = 'kk',
+  LATVIAN = 'lv',
+  LITHUANIAN = 'lt',
+  MACEDONIAN = 'mk',
+  MALTESE = 'mt',
+  MONGOLIAN = 'mn',
+  PASHTO = 'ps',
+  SWAHILI_CONGO = 'sw-CD',
+  UZBEK = 'uz',
+  WELSH = 'cy',
+  YIDDISH = 'yi'
 }
 
 export interface LanguageOption {
@@ -91,8 +179,50 @@ export interface DriverBid {
 export interface Message {
   id: string;
   senderId: string;
+  senderName: string;
+  senderRole: 'driver' | 'passenger';
   text: string;
   timestamp: number;
+  rideId?: string; // Link message to specific ride for evidence
+  read: boolean;
+}
+
+export interface RideMessageHistory {
+  rideId: string;
+  driverId: string;
+  driverName: string;
+  passengerId: string;
+  passengerName: string;
+  messages: Message[];
+  createdAt: number;
+  lastMessageAt: number;
+}
+
+export enum ReportReason {
+  HARASSMENT = 'Sexual Harassment',
+  INAPPROPRIATE_LANGUAGE = 'Inappropriate Language',
+  THREATENING_BEHAVIOR = 'Threatening Behavior',
+  UNSAFE_DRIVING = 'Unsafe Driving',
+  DISCRIMINATION = 'Discrimination',
+  SCAM_ATTEMPT = 'Scam or Fraud Attempt',
+  OTHER = 'Other'
+}
+
+export interface Report {
+  id: string;
+  reporterId: string;
+  reporterName: string;
+  reporterRole: 'driver' | 'passenger';
+  reportedUserId: string;
+  reportedUserName: string;
+  reportedUserRole: 'driver' | 'passenger';
+  reason: ReportReason;
+  description: string;
+  rideId: string;
+  messageHistory: Message[]; // Preserved evidence
+  screenshots?: string[]; // Base64 encoded screenshots
+  timestamp: number;
+  status: 'pending' | 'under_review' | 'resolved' | 'dismissed';
 }
 
 export interface Buddy {
@@ -124,6 +254,7 @@ export interface AppState {
   activeBid: DriverBid | null;
   mood: string;
   aiPersonality: AIPersonality;
+  aiProvider: AIProvider;
   isOnline: boolean;
   earnings: number;
   carbonOffset: number;
@@ -134,6 +265,9 @@ export interface AppState {
   buddies: Buddy[];
   safeCircleContacts: SafeCircleContact[];
   isSafetyMonitoringActive: boolean;
+  messageHistory: RideMessageHistory[];
+  blockedUsers: string[]; // Array of blocked user IDs
+  reports: Report[];
   // PERFORMANCE METRICS
   completedRides: number;
   avgResponseTime: number; 
