@@ -38,16 +38,102 @@ const africanLanguages: LanguageOption[] = [
   { code: Language.ZULU, name: 'Zulu', nativeName: 'isiZulu', flag: '🇿🇦' },
   { code: Language.XHOSA, name: 'Xhosa', nativeName: 'isiXhosa', flag: '🇿🇦' },
   { code: Language.AFRIKAANS, name: 'Afrikaans', nativeName: 'Afrikaans', flag: '🇿🇦' },
+  { code: Language.HAUSA, name: 'Hausa', nativeName: 'Hausa', flag: '🇳🇬' },
+  { code: Language.YORUBA, name: 'Yoruba', nativeName: 'Yorùbá', flag: '🇳🇬' },
+  { code: Language.IGBO, name: 'Igbo', nativeName: 'Igbo', flag: '🇳🇬' },
+  { code: Language.AMHARIC, name: 'Amharic', nativeName: 'አማርኛ', flag: '🇪🇹' },
+  { code: Language.OROMO, name: 'Oromo', nativeName: 'Oromoo', flag: '🇪🇹' },
+  { code: Language.SOMALI, name: 'Somali', nativeName: 'Soomaali', flag: '🇸🇴' },
+  { code: Language.WOLOF, name: 'Wolof', nativeName: 'Wolof', flag: '🇸🇳' },
+  { code: Language.KINYARWANDA, name: 'Kinyarwanda', nativeName: 'Ikinyarwanda', flag: '🇷🇼' },
+  { code: Language.LINGALA, name: 'Lingala', nativeName: 'Lingála', flag: '🇨🇩' },
+  { code: Language.TIGRINYA, name: 'Tigrinya', nativeName: 'ትግርኛ', flag: '🇪🇷' },
 ];
 
-// International Languages
-const internationalLanguages: LanguageOption[] = [
-  { code: Language.ENGLISH, name: 'English (International)', nativeName: 'English', flag: '🌐' },
-  { code: Language.FRENCH, name: 'French', nativeName: 'Français', flag: '🇫🇷' },
-  { code: Language.PORTUGUESE, name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹' },
+// European Languages
+const europeanLanguages: LanguageOption[] = [
+  { code: Language.ENGLISH, name: 'English', nativeName: 'English', flag: '🇬🇧' },
   { code: Language.SPANISH, name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  { code: Language.FRENCH, name: 'French', nativeName: 'Français', flag: '🇫🇷' },
+  { code: Language.GERMAN, name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
+  { code: Language.ITALIAN, name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹' },
+  { code: Language.PORTUGUESE, name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹' },
+  { code: Language.RUSSIAN, name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' },
+  { code: Language.POLISH, name: 'Polish', nativeName: 'Polski', flag: '🇵🇱' },
+  { code: Language.DUTCH, name: 'Dutch', nativeName: 'Nederlands', flag: '🇳🇱' },
+  { code: Language.TURKISH, name: 'Turkish', nativeName: 'Türkçe', flag: '🇹🇷' },
+  { code: Language.GREEK, name: 'Greek', nativeName: 'Ελληνικά', flag: '🇬🇷' },
+  { code: Language.SWEDISH, name: 'Swedish', nativeName: 'Svenska', flag: '🇸🇪' },
+  { code: Language.NORWEGIAN, name: 'Norwegian', nativeName: 'Norsk', flag: '🇳🇴' },
+  { code: Language.DANISH, name: 'Danish', nativeName: 'Dansk', flag: '🇩🇰' },
+  { code: Language.FINNISH, name: 'Finnish', nativeName: 'Suomi', flag: '🇫🇮' },
+  { code: Language.CZECH, name: 'Czech', nativeName: 'Čeština', flag: '🇨🇿' },
+  { code: Language.HUNGARIAN, name: 'Hungarian', nativeName: 'Magyar', flag: '🇭🇺' },
+  { code: Language.ROMANIAN, name: 'Romanian', nativeName: 'Română', flag: '🇷🇴' },
+  { code: Language.UKRAINIAN, name: 'Ukrainian', nativeName: 'Українська', flag: '🇺🇦' },
+  { code: Language.CROATIAN, name: 'Croatian', nativeName: 'Hrvatski', flag: '🇭🇷' },
+  { code: Language.SERBIAN, name: 'Serbian', nativeName: 'Српски', flag: '🇷🇸' },
+  { code: Language.BULGARIAN, name: 'Bulgarian', nativeName: 'Български', flag: '🇧🇬' },
+  { code: Language.SLOVAK, name: 'Slovak', nativeName: 'Slovenčina', flag: '🇸🇰' },
+  { code: Language.CATALAN, name: 'Catalan', nativeName: 'Català', flag: '🇪🇸' },
+];
+
+// Asian Languages
+const asianLanguages: LanguageOption[] = [
   { code: Language.CHINESE, name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
+  { code: Language.HINDI, name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳' },
+  { code: Language.BENGALI, name: 'Bengali', nativeName: 'বাংলা', flag: '🇧🇩' },
+  { code: Language.URDU, name: 'Urdu', nativeName: 'اردو', flag: '🇵🇰' },
+  { code: Language.PUNJABI, name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
+  { code: Language.JAPANESE, name: 'Japanese', nativeName: '日本語', flag: '🇯🇵' },
+  { code: Language.KOREAN, name: 'Korean', nativeName: '한국어', flag: '🇰🇷' },
+  { code: Language.VIETNAMESE, name: 'Vietnamese', nativeName: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: Language.THAI, name: 'Thai', nativeName: 'ไทย', flag: '🇹🇭' },
+  { code: Language.INDONESIAN, name: 'Indonesian', nativeName: 'Bahasa Indonesia', flag: '🇮🇩' },
+  { code: Language.MALAY, name: 'Malay', nativeName: 'Bahasa Melayu', flag: '🇲🇾' },
+  { code: Language.TAGALOG, name: 'Tagalog', nativeName: 'Tagalog', flag: '🇵🇭' },
+  { code: Language.TAMIL, name: 'Tamil', nativeName: 'தமிழ்', flag: '🇮🇳' },
+  { code: Language.TELUGU, name: 'Telugu', nativeName: 'తెలుగు', flag: '🇮🇳' },
+  { code: Language.MARATHI, name: 'Marathi', nativeName: 'मराठी', flag: '🇮🇳' },
+  { code: Language.GUJARATI, name: 'Gujarati', nativeName: 'ગુજરાતી', flag: '🇮🇳' },
+  { code: Language.KANNADA, name: 'Kannada', nativeName: 'ಕನ್ನಡ', flag: '🇮🇳' },
+  { code: Language.MALAYALAM, name: 'Malayalam', nativeName: 'മലയാളം', flag: '🇮🇳' },
+  { code: Language.BURMESE, name: 'Burmese', nativeName: 'မြန်မာဘာသာ', flag: '🇲🇲' },
+  { code: Language.KHMER, name: 'Khmer', nativeName: 'ខ្មែរ', flag: '🇰🇭' },
+  { code: Language.NEPALI, name: 'Nepali', nativeName: 'नेपाली', flag: '🇳🇵' },
+  { code: Language.SINHALA, name: 'Sinhala', nativeName: 'සිංහල', flag: '🇱🇰' },
+];
+
+// Middle Eastern Languages
+const middleEasternLanguages: LanguageOption[] = [
   { code: Language.ARABIC, name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦' },
+  { code: Language.HEBREW, name: 'Hebrew', nativeName: 'עברית', flag: '🇮🇱' },
+  { code: Language.PERSIAN, name: 'Persian', nativeName: 'فارسی', flag: '🇮🇷' },
+  { code: Language.KURDISH, name: 'Kurdish', nativeName: 'Kurdî', flag: '🌍' },
+];
+
+// Other Languages
+const otherLanguages: LanguageOption[] = [
+  { code: Language.ALBANIAN, name: 'Albanian', nativeName: 'Shqip', flag: '🇦🇱' },
+  { code: Language.ARMENIAN, name: 'Armenian', nativeName: 'Հայերեն', flag: '🇦🇲' },
+  { code: Language.AZERBAIJANI, name: 'Azerbaijani', nativeName: 'Azərbaycan', flag: '🇦🇿' },
+  { code: Language.BASQUE, name: 'Basque', nativeName: 'Euskara', flag: '🇪🇸' },
+  { code: Language.BELARUSIAN, name: 'Belarusian', nativeName: 'Беларуская', flag: '🇧🇾' },
+  { code: Language.BOSNIAN, name: 'Bosnian', nativeName: 'Bosanski', flag: '🇧🇦' },
+  { code: Language.ESTONIAN, name: 'Estonian', nativeName: 'Eesti', flag: '🇪🇪' },
+  { code: Language.GALICIAN, name: 'Galician', nativeName: 'Galego', flag: '🇪🇸' },
+  { code: Language.GEORGIAN, name: 'Georgian', nativeName: 'ქართული', flag: '🇬🇪' },
+  { code: Language.ICELANDIC, name: 'Icelandic', nativeName: 'Íslenska', flag: '🇮🇸' },
+  { code: Language.KAZAKH, name: 'Kazakh', nativeName: 'Қазақша', flag: '🇰🇿' },
+  { code: Language.LATVIAN, name: 'Latvian', nativeName: 'Latviešu', flag: '🇱🇻' },
+  { code: Language.LITHUANIAN, name: 'Lithuanian', nativeName: 'Lietuvių', flag: '🇱🇹' },
+  { code: Language.MACEDONIAN, name: 'Macedonian', nativeName: 'Македонски', flag: '🇲🇰' },
+  { code: Language.MALTESE, name: 'Maltese', nativeName: 'Malti', flag: '🇲🇹' },
+  { code: Language.MONGOLIAN, name: 'Mongolian', nativeName: 'Монгол', flag: '🇲🇳' },
+  { code: Language.PASHTO, name: 'Pashto', nativeName: 'پښتو', flag: '🇦🇫' },
+  { code: Language.UZBEK, name: 'Uzbek', nativeName: 'Oʻzbekcha', flag: '🇺🇿' },
+  { code: Language.WELSH, name: 'Welsh', nativeName: 'Cymraeg', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  { code: Language.YIDDISH, name: 'Yiddish', nativeName: 'ייִדיש', flag: '🌍' },
 ];
 
 const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState, onClose }) => {
@@ -56,7 +142,11 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState
 
   const [showZimbabweLanguages, setShowZimbabweLanguages] = useState(false);
   const [showAfricanLanguages, setShowAfricanLanguages] = useState(false);
-  const [showInternationalLanguages, setShowInternationalLanguages] = useState(false);
+  const [showEuropeanLanguages, setShowEuropeanLanguages] = useState(false);
+  const [showAsianLanguages, setShowAsianLanguages] = useState(false);
+  const [showMiddleEasternLanguages, setShowMiddleEasternLanguages] = useState(false);
+  const [showOtherLanguages, setShowOtherLanguages] = useState(false);
+  const [showLocationSettings, setShowLocationSettings] = useState(false);
 
   const paymentMethods = [
     { id: PaymentMethod.CARD, icon: CreditCard, label: 'Cloud Card' },
@@ -293,16 +383,24 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState
               <div className="p-4 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{zimbabweLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
+                    <span className="text-2xl">{
+                      zimbabweLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
                       africanLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
-                      internationalLanguages.find(l => l.code === appState.preferredLanguage)?.flag || '🌐'}</span>
+                      europeanLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
+                      asianLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
+                      middleEasternLanguages.find(l => l.code === appState.preferredLanguage)?.flag ||
+                      otherLanguages.find(l => l.code === appState.preferredLanguage)?.flag || '🌐'
+                    }</span>
                     <div>
                       <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Active Language</p>
-                      <p className="text-xs font-black text-white italic">
-                        {zimbabweLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
-                          africanLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
-                          internationalLanguages.find(l => l.code === appState.preferredLanguage)?.name || 'English'}
-                      </p>
+                      <p className="text-xs font-black text-white italic">{
+                        zimbabweLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                        africanLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                        europeanLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                        asianLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                        middleEasternLanguages.find(l => l.code === appState.preferredLanguage)?.name ||
+                        otherLanguages.find(l => l.code === appState.preferredLanguage)?.name || 'English'
+                      }</p>
                     </div>
                   </div>
                   <Check className="w-5 h-5 text-indigo-400" />
@@ -410,53 +508,135 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState
                 )}
               </div>
 
-              {/* International Languages */}
-              <div className="border border-white/5 rounded-2xl overflow-hidden">
-                <button
-                  onClick={() => setShowInternationalLanguages(!showInternationalLanguages)}
-                  className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🌐</span>
-                    <div className="text-left">
-                      <p className="text-xs font-black text-white uppercase italic tracking-wider">International Languages</p>
-                      <p className="text-[7px] text-gray-500 font-black uppercase tracking-widest">{internationalLanguages.length} Languages</p>
-                    </div>
-                  </div>
-                  {showInternationalLanguages ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                </button>
+              {/* European Languages */}
+              <LanguageSection
+                title="European Languages"
+                languages={europeanLanguages}
+                flag="🇪🇺"
+                isExpanded={showEuropeanLanguages}
+                onToggle={() => setShowEuropeanLanguages(!showEuropeanLanguages)}
+                currentLanguage={appState.preferredLanguage}
+                onSelectLanguage={(code) => {
+                  updateState({ preferredLanguage: code });
+                  if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                    navigator.vibrate(10);
+                  }
+                }}
+              />
 
-                {showInternationalLanguages && (
-                  <div className="px-3 pb-3 space-y-1.5 bg-black/20">
-                    {internationalLanguages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          updateState({ preferredLanguage: lang.code });
-                          if (appState.hapticsEnabled && 'vibrate' in navigator) {
-                            navigator.vibrate(10);
-                          }
-                        }}
-                        className={`w-full p-3 rounded-xl flex items-center justify-between transition-all ${
-                          appState.preferredLanguage === lang.code
-                            ? 'bg-indigo-600 border border-indigo-400 text-white shadow-lg'
-                            : 'bg-black/40 border border-white/5 hover:border-indigo-500/30'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">{lang.flag}</span>
-                          <div className="text-left">
-                            <p className="text-[9px] font-black text-white uppercase tracking-wider">{lang.name}</p>
-                            <p className="text-[7px] text-gray-400 font-bold">{lang.nativeName}</p>
-                          </div>
-                        </div>
-                        {appState.preferredLanguage === lang.code && (
-                          <Check className="w-4 h-4 text-white stroke-[3px]" />
-                        )}
-                      </button>
-                    ))}
+              {/* Asian Languages */}
+              <LanguageSection
+                title="Asian Languages"
+                languages={asianLanguages}
+                flag="🌏"
+                isExpanded={showAsianLanguages}
+                onToggle={() => setShowAsianLanguages(!showAsianLanguages)}
+                currentLanguage={appState.preferredLanguage}
+                onSelectLanguage={(code) => {
+                  updateState({ preferredLanguage: code });
+                  if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                    navigator.vibrate(10);
+                  }
+                }}
+              />
+
+              {/* Middle Eastern Languages */}
+              <LanguageSection
+                title="Middle Eastern Languages"
+                languages={middleEasternLanguages}
+                flag="🕌"
+                isExpanded={showMiddleEasternLanguages}
+                onToggle={() => setShowMiddleEasternLanguages(!showMiddleEasternLanguages)}
+                currentLanguage={appState.preferredLanguage}
+                onSelectLanguage={(code) => {
+                  updateState({ preferredLanguage: code });
+                  if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                    navigator.vibrate(10);
+                  }
+                }}
+              />
+
+              {/* Other Languages */}
+              <LanguageSection
+                title="Other Languages"
+                languages={otherLanguages}
+                flag="🌐"
+                isExpanded={showOtherLanguages}
+                onToggle={() => setShowOtherLanguages(!showOtherLanguages)}
+                currentLanguage={appState.preferredLanguage}
+                onSelectLanguage={(code) => {
+                  updateState({ preferredLanguage: code });
+                  if (appState.hapticsEnabled && 'vibrate' in navigator) {
+                    navigator.vibrate(10);
+                  }
+                }}
+              />
+           </div>
+        </div>
+
+        {/* Location Settings */}
+        <div className="space-y-4">
+           <div className="flex items-center justify-between px-4">
+              <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Location Services</h3>
+              <MapPin className="w-3 h-3 text-green-500" />
+           </div>
+           <div className="bg-[#0f0f12] border border-white/5 rounded-[2.5rem] p-6 space-y-4">
+              <div className="p-4 bg-green-600/10 border border-green-500/20 rounded-2xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <MapPin className="w-4 h-4 text-green-400" />
+                  <p className="text-xs font-black text-white uppercase italic tracking-widest">Free Location Service</p>
+                </div>
+                <p className="text-[8px] text-green-400 font-bold leading-relaxed">
+                  Using OpenStreetMap Nominatim - completely free, no API key required. High-accuracy GPS with reverse geocoding.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-white uppercase italic">Current Location</p>
+                    <p className="text-[8px] text-gray-500 font-bold mt-1">{appState.currentLocation?.address || 'Detecting...'}</p>
+                  </div>
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+
+                {appState.currentLocation && (
+                  <div className="p-3 bg-black/40 rounded-xl border border-white/5">
+                    <p className="text-[7px] text-gray-600 font-black uppercase tracking-widest mb-1">GPS Coordinates</p>
+                    <p className="text-[9px] font-bold text-white font-mono">
+                      {appState.currentLocation.lat.toFixed(6)}, {appState.currentLocation.lng.toFixed(6)}
+                    </p>
                   </div>
                 )}
+
+                <button
+                  onClick={async () => {
+                    try {
+                      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                          enableHighAccuracy: true,
+                          timeout: 10000,
+                          maximumAge: 0
+                        });
+                      });
+                      updateState({
+                        currentLocation: {
+                          lat: position.coords.latitude,
+                          lng: position.coords.longitude,
+                          address: 'Updating address...'
+                        }
+                      });
+                    } catch (error) {
+                      alert('Location permission denied or unavailable');
+                    }
+                  }}
+                  className="w-full py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Refresh Location
+                </button>
               </div>
            </div>
         </div>
@@ -548,12 +728,75 @@ const ToggleRow = ({ label, desc, icon: Icon, active, onClick }: any) => (
         <p className="text-[8px] text-gray-500 font-black uppercase tracking-tighter">{desc}</p>
       </div>
     </div>
-    <button 
+    <button
       onClick={onClick}
       className={`w-12 h-6 rounded-full transition-all relative ${active ? 'bg-indigo-600' : 'bg-gray-800'}`}
     >
       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${active ? 'left-7 shadow-[0_0_10px_#fff]' : 'left-1'}`}></div>
     </button>
+  </div>
+);
+
+interface LanguageSectionProps {
+  title: string;
+  languages: LanguageOption[];
+  flag: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+  currentLanguage: Language;
+  onSelectLanguage: (code: Language) => void;
+}
+
+const LanguageSection: React.FC<LanguageSectionProps> = ({
+  title,
+  languages,
+  flag,
+  isExpanded,
+  onToggle,
+  currentLanguage,
+  onSelectLanguage
+}) => (
+  <div className="border border-white/5 rounded-2xl overflow-hidden">
+    <button
+      onClick={onToggle}
+      className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-all"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{flag}</span>
+        <div className="text-left">
+          <p className="text-xs font-black text-white uppercase italic tracking-wider">{title}</p>
+          <p className="text-[7px] text-gray-500 font-black uppercase tracking-widest">{languages.length} Languages</p>
+        </div>
+      </div>
+      {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+    </button>
+
+    {isExpanded && (
+      <div className="px-3 pb-3 space-y-1.5 bg-black/20">
+        {languages.map((lang) => (
+          <button
+            key={lang.code}
+            onClick={() => onSelectLanguage(lang.code)}
+            className={`w-full p-3 rounded-xl flex items-center justify-between transition-all ${
+              currentLanguage === lang.code
+                ? 'bg-indigo-600 border border-indigo-400 text-white shadow-lg'
+                : 'bg-black/40 border border-white/5 hover:border-indigo-500/30'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-lg">{lang.flag}</span>
+              <div className="text-left">
+                <p className="text-[9px] font-black text-white uppercase tracking-wider">{lang.name}</p>
+                <p className="text-[7px] text-gray-400 font-bold">{lang.nativeName}</p>
+              </div>
+            </div>
+            {currentLanguage === lang.code && (
+              <Check className="w-4 h-4 text-white stroke-[3px]" />
+            )}
+          </button>
+        ))}
+      </div>
+    )}
   </div>
 );
 

@@ -6,7 +6,7 @@ import Login from './components/Auth/Login';
 import { ToastContainer, useToast } from './components/Shared/Toast';
 import { FullScreenLoader } from './components/Shared/LoadingSkeletons';
 import { Bell, User, MapPin } from 'lucide-react';
-import { reverseGeocode } from './services/gemini';
+import { reverseGeocode } from './services/location';
 
 // Lazy load heavy components for better initial load performance
 const PassengerDashboard = lazy(() => import('./components/Passenger/Dashboard'));
@@ -98,13 +98,13 @@ const App: React.FC = () => {
           
           // Use a local variable to hold the address so we don't cause infinite re-renders
           // geocodeInProgress prevents overlapping API calls if geocoding is slow
-          if (now - lastGeocodeRef.current > 20000 && !geocodeInProgress.current) { 
+          if (now - lastGeocodeRef.current > 20000 && !geocodeInProgress.current) {
             geocodeInProgress.current = true;
             try {
-              const address = await reverseGeocode(latitude, longitude);
+              const locationResult = await reverseGeocode(latitude, longitude);
               lastGeocodeRef.current = Date.now();
-              updateState({ 
-                currentLocation: { lat: latitude, lng: longitude, address: address } 
+              updateState({
+                currentLocation: { lat: latitude, lng: longitude, address: locationResult.address }
               });
             } catch (err) {
               console.error("Geocoding failed, keeping coordinates only.");

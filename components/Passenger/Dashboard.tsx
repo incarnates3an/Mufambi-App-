@@ -12,7 +12,7 @@ import { BidListSkeleton } from '../Shared/LoadingSkeletons';
 import Button from '../Shared/Button';
 import EmptyState from '../Shared/EmptyState';
 import { useDebounce } from '../../hooks/useDebounce';
-import { searchPlaces } from '../../services/gemini';
+import { searchPlaces } from '../../services/location';
 import {
   Search, MapPin, Star, Car, Shield, Leaf,
   Smile, Music, Users, Plus, Minus, X, Check,
