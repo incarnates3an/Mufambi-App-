@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact } from './types';
+import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact, Language } from './types';
 import Navigation from './components/Layout/Navigation';
 import Login from './components/Auth/Login';
 import { ToastContainer, useToast } from './components/Shared/Toast';
@@ -50,7 +50,10 @@ const App: React.FC = () => {
     avgResponseTime: 6.2,
     driverRating: 4.88,
     hapticsEnabled: true,
-    biometricsEnabled: true
+    biometricsEnabled: true,
+    preferredLanguage: Language.ENGLISH_ZW,
+    notificationsEnabled: true,
+    soundEnabled: true
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
