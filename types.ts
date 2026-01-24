@@ -35,6 +35,11 @@ export enum AIPersonality {
   ENERGETIC = 'Energetic'
 }
 
+export enum AIProvider {
+  GEMINI = 'Gemini',  // Google Gemini (Free tier available)
+  OPENAI = 'OpenAI'   // OpenAI GPT-4o (Paid, requires API key)
+}
+
 export enum Language {
   // Zimbabwe Languages (Progenitor Country)
   SHONA = 'sn',
@@ -124,6 +129,7 @@ export interface AppState {
   activeBid: DriverBid | null;
   mood: string;
   aiPersonality: AIPersonality;
+  aiProvider: AIProvider;
   isOnline: boolean;
   earnings: number;
   carbonOffset: number;

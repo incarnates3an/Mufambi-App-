@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { UserRole, AppState, RideStatus, AIPersonality, PaymentMethod, DriverRank, Location, SafeCircleContact, Language } from './types';
+import { UserRole, AppState, RideStatus, AIPersonality, AIProvider, PaymentMethod, DriverRank, Location, SafeCircleContact, Language } from './types';
 import Navigation from './components/Layout/Navigation';
 import Login from './components/Auth/Login';
 import { ToastContainer, useToast } from './components/Shared/Toast';
@@ -36,6 +36,7 @@ const App: React.FC = () => {
     activeBid: null,
     mood: 'Neutral',
     aiPersonality: AIPersonality.FRIENDLY,
+    aiProvider: AIProvider.GEMINI,
     isOnline: false,
     earnings: 1250.50,
     carbonOffset: 45.2,

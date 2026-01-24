@@ -3,7 +3,37 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Sparkles, Gamepad2, Info, Smile, Mic, MicOff, Volume2, BrainCircuit } from 'lucide-react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { generateAIResponse, getTrivia } from '../../services/gemini';
-import { AIPersonality, AppState } from '../../types';
+import { generateOpenAIResponse, getOpenAITrivia, textToSpeech, speechToText } from '../../services/openai';
+import { AIPersonality, AIProvider, AppState, Language } from '../../types';
+
+// Language name mapping
+const getLanguageName = (lang: Language): string => {
+  const names: Record<Language, string> = {
+    [Language.SHONA]: 'Shona (chiShona)',
+    [Language.NDEBELE]: 'Ndebele (isiNdebele)',
+    [Language.ENGLISH_ZW]: 'English',
+    [Language.TONGA]: 'Tonga (chiTonga)',
+    [Language.SHANGANI]: 'Shangani (xiTsonga)',
+    [Language.VENDA]: 'Venda (tshiVenḓa)',
+    [Language.KALANGA]: 'Kalanga',
+    [Language.NAMBYA]: 'Nambya (chiNambya)',
+    [Language.SOTHO]: 'Sotho (Sesotho)',
+    [Language.TSWANA]: 'Tswana (Setswana)',
+    [Language.CHIBARWE]: 'Chibarwe (chiBarwe)',
+    [Language.SIGN_LANGUAGE_ZW]: 'English (for accessibility)',
+    [Language.SWAHILI]: 'Swahili (Kiswahili)',
+    [Language.ZULU]: 'Zulu (isiZulu)',
+    [Language.XHOSA]: 'Xhosa (isiXhosa)',
+    [Language.AFRIKAANS]: 'Afrikaans',
+    [Language.ENGLISH]: 'English',
+    [Language.FRENCH]: 'French (Français)',
+    [Language.PORTUGUESE]: 'Portuguese (Português)',
+    [Language.SPANISH]: 'Spanish (Español)',
+    [Language.CHINESE]: 'Chinese (中文)',
+    [Language.ARABIC]: 'Arabic (العربية)'
+  };
+  return names[lang] || 'English';
+};
 
 // Audio Utility Functions
 function encode(bytes: Uint8Array) {
@@ -177,7 +207,14 @@ const AICompanion: React.FC<AICompanionProps> = ({ personality, appState }) => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
           },
-          systemInstruction: `You are Mufambi Pro. Deeply reason through every word. Tone: ${personality}. User Mood: ${appState.mood}. Ride: ${appState.rideStatus}.`,
+          systemInstruction: `You are Mufambi Pro. Deeply reason through every word.
+
+LANGUAGE: Respond in ${getLanguageName(appState.preferredLanguage)} to match the user's preference.
+TONE: ${personality}
+USER MOOD: ${appState.mood}
+RIDE STATUS: ${appState.rideStatus}
+
+Always respond in the user's preferred language and be culturally appropriate.`,
           inputAudioTranscription: {},
           outputAudioTranscription: {}
         }
@@ -208,23 +245,51 @@ const AICompanion: React.FC<AICompanionProps> = ({ personality, appState }) => {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-    
+
     const userMsg = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsLoading(true);
 
     const context = `Ride status: ${appState.rideStatus}, Destination: ${appState.destination?.address || 'Not set'}, Mood: ${appState.mood}`;
-    const response = await generateAIResponse(userMsg, personality, context);
-    
-    setMessages(prev => [...prev, { role: 'ai', text: response || "My reasoning circuits encountered an anomaly. Let me try again." }]);
+
+    try {
+      let response: string;
+
+      if (appState.aiProvider === AIProvider.OPENAI) {
+        // Use OpenAI GPT-4o
+        response = await generateOpenAIResponse(userMsg, personality, context, appState.preferredLanguage);
+      } else {
+        // Use Google Gemini (default)
+        response = await generateAIResponse(userMsg, personality, context, appState.preferredLanguage);
+      }
+
+      setMessages(prev => [...prev, { role: 'ai', text: response || "My reasoning circuits encountered an anomaly. Let me try again." }]);
+    } catch (error: any) {
+      const errorMsg = error.message || "My reasoning circuits encountered an anomaly. Let me try again.";
+      setMessages(prev => [...prev, { role: 'ai', text: errorMsg }]);
+    }
+
     setIsLoading(false);
   };
 
   const loadTrivia = async () => {
     setIsLoading(true);
-    const trivia = await getTrivia();
-    setMessages(prev => [...prev, { role: 'ai', text: trivia }]);
+
+    try {
+      let trivia: string;
+
+      if (appState.aiProvider === AIProvider.OPENAI) {
+        trivia = await getOpenAITrivia(appState.preferredLanguage);
+      } else {
+        trivia = await getTrivia(appState.preferredLanguage);
+      }
+
+      setMessages(prev => [...prev, { role: 'ai', text: trivia }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { role: 'ai', text: "Unable to load trivia at the moment." }]);
+    }
+
     setIsLoading(false);
   };
 

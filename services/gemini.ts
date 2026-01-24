@@ -1,6 +1,32 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIPersonality } from "../types";
+import { AIPersonality, Language } from "../types";
+
+// Language mapping for Gemini
+const languageNames: Record<Language, string> = {
+  [Language.SHONA]: 'Shona (chiShona)',
+  [Language.NDEBELE]: 'Ndebele (isiNdebele)',
+  [Language.ENGLISH_ZW]: 'English',
+  [Language.TONGA]: 'Tonga (chiTonga)',
+  [Language.SHANGANI]: 'Shangani (xiTsonga)',
+  [Language.VENDA]: 'Venda (tshiVenḓa)',
+  [Language.KALANGA]: 'Kalanga',
+  [Language.NAMBYA]: 'Nambya (chiNambya)',
+  [Language.SOTHO]: 'Sotho (Sesotho)',
+  [Language.TSWANA]: 'Tswana (Setswana)',
+  [Language.CHIBARWE]: 'Chibarwe (chiBarwe)',
+  [Language.SIGN_LANGUAGE_ZW]: 'English (for accessibility)',
+  [Language.SWAHILI]: 'Swahili (Kiswahili)',
+  [Language.ZULU]: 'Zulu (isiZulu)',
+  [Language.XHOSA]: 'Xhosa (isiXhosa)',
+  [Language.AFRIKAANS]: 'Afrikaans',
+  [Language.ENGLISH]: 'English',
+  [Language.FRENCH]: 'French (Français)',
+  [Language.PORTUGUESE]: 'Portuguese (Português)',
+  [Language.SPANISH]: 'Spanish (Español)',
+  [Language.CHINESE]: 'Chinese (中文)',
+  [Language.ARABIC]: 'Arabic (العربية)'
+};
 
 // Get API key from environment or fallback to prompt
 const getApiKey = () => {
@@ -85,8 +111,10 @@ export const searchPlaces = async (query: string, currentLat?: number, currentLn
 export const generateAIResponse = async (
   prompt: string,
   personality: AIPersonality,
-  context: string = ""
+  context: string = "",
+  language: Language = Language.ENGLISH
 ) => {
+  const languageName = languageNames[language];
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
@@ -95,21 +123,28 @@ export const generateAIResponse = async (
         thinkingConfig: {
           thinkingBudget: 16384,
         },
-        systemInstruction: `You are Mufambi "Pro", an elite AI ride-hailing companion with advanced reasoning capabilities. 
-        
+        systemInstruction: `You are Mufambi "Pro", an elite AI ride-hailing companion with advanced reasoning capabilities.
+
         PERSONALITY PROFILE:
         - Current persona: ${personality}.
         - Role: Not just a chatbot, but a proactive travel concierge.
-        
+
+        LANGUAGE REQUIREMENT:
+        - The user's preferred language is ${languageName}
+        - ALWAYS respond in ${languageName} unless the user explicitly asks for a different language
+        - Understand and process user input in ANY language, but respond in ${languageName}
+        - Be culturally appropriate and use local context when relevant (especially for Zimbabwe languages)
+
         BEHAVIORAL CONSTRAINTS:
         - Reason deeply about the user's intent. If they seem stressed, proactively suggest a calming playlist or a quieter route.
         - Mirror the user's mood intelligently. If they are in "Quiet" mode, don't just be brief—be invisible unless necessary.
         - Provide high-quality, verified travel insights.
-        
+
         CONTEXT DATA:
         ${context}
-        
-        If the user asks for anything complex (math, logic, travel planning), use your thinking budget to ensure 100% accuracy.`,
+
+        If the user asks for anything complex (math, logic, travel planning), use your thinking budget to ensure 100% accuracy.
+        Remember: Your responses should be in ${languageName} to match the user's preference.`,
         temperature: 0.7,
         topP: 0.9,
       },
@@ -130,12 +165,15 @@ export const generateAIResponse = async (
   }
 };
 
-export const getBuddySuggestions = async (userMood: string, rideStatus: string) => {
+export const getBuddySuggestions = async (userMood: string, rideStatus: string, language: Language = Language.ENGLISH) => {
+  const languageName = languageNames[language];
   try {
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash",
-      contents: `Suggest 3 fictional travel buddies for a Mufambi user who is currently feeling "${userMood}" and has a ride status of "${rideStatus}". 
-      
+      contents: `Suggest 3 fictional travel buddies for a Mufambi user who is currently feeling "${userMood}" and has a ride status of "${rideStatus}".
+
+      LANGUAGE CONTEXT: User prefers ${languageName} - use culturally appropriate names when relevant.
+
       MATCHING LOGIC:
       - If status is SEARCHING, suggest patient or reassuring buddies.
       - If status is IN_PROGRESS, suggest conversational or entertainment-focused buddies.
@@ -168,14 +206,15 @@ export const getBuddySuggestions = async (userMood: string, rideStatus: string) 
   }
 };
 
-export const getTrivia = async () => {
+export const getTrivia = async (language: Language = Language.ENGLISH) => {
+  const languageName = languageNames[language];
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
-      contents: "Tell me a sophisticated, obscure, and fascinating fact about world transportation or urban history.",
+      contents: `Tell me a sophisticated, obscure, and fascinating fact about world transportation or urban history. Respond in ${languageName}.`,
       config: {
         thinkingConfig: { thinkingBudget: 4096 },
-        systemInstruction: "You are a world-class historian and urban planner. Provide one mind-blowing transportation fact.",
+        systemInstruction: `You are a world-class historian and urban planner. Provide one mind-blowing transportation fact in ${languageName}.`,
       },
     });
     return response.text || "The London Underground was the world's first underground railway, opening in 1863.";

@@ -8,7 +8,7 @@ import {
   FileText, Hash, MapPin, Heart, Users, Zap, Star,
   Globe, ChevronDown, ChevronUp, Volume2, VolumeX
 } from 'lucide-react';
-import { AppState, AIPersonality, PaymentMethod, UserRole, DriverRank, Language, LanguageOption } from '../../types';
+import { AppState, AIPersonality, AIProvider, PaymentMethod, UserRole, DriverRank, Language, LanguageOption } from '../../types';
 
 interface SettingsOverlayProps {
   appState: AppState;
@@ -180,26 +180,70 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ appState, updateState
           </div>
         </div>
 
-        {/* Neural Tuning - AI Personality Settings */}
+        {/* Neural Tuning - AI Personality & Provider Settings */}
         <div className="space-y-4">
            <div className="flex items-center justify-between px-4">
               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Companion Tuning</h3>
               <Sparkles className="w-3 h-3 text-indigo-500" />
            </div>
            <div className="bg-[#0f0f12] border border-white/5 rounded-[2.5rem] p-6 space-y-6">
+              {/* AI Provider Selection */}
               <div className="space-y-4">
+                 <div className="flex items-center gap-3">
+                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    <p className="text-xs font-black text-white uppercase italic tracking-widest">AI Engine</p>
+                 </div>
+                 <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => updateState({ aiProvider: AIProvider.GEMINI })}
+                      className={`p-3 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all ${
+                        appState.aiProvider === AIProvider.GEMINI
+                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20'
+                        : 'bg-black/40 border-white/5 text-gray-500'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <span>Gemini</span>
+                        <span className="text-[6px] text-green-400">FREE TIER</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => updateState({ aiProvider: AIProvider.OPENAI })}
+                      className={`p-3 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all ${
+                        appState.aiProvider === AIProvider.OPENAI
+                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20'
+                        : 'bg-black/40 border-white/5 text-gray-500'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <span>GPT-4o</span>
+                        <span className="text-[6px] text-amber-400">PAID</span>
+                      </div>
+                    </button>
+                 </div>
+                 {appState.aiProvider === AIProvider.OPENAI && (
+                   <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                     <p className="text-[8px] text-amber-400 font-bold">
+                       OpenAI requires an API key. Set it with: <code className="bg-black/40 px-1 py-0.5 rounded">localStorage.setItem('OPENAI_API_KEY', 'sk-...')</code>
+                     </p>
+                   </div>
+                 )}
+              </div>
+
+              {/* AI Personality */}
+              <div className="space-y-4 pt-4 border-t border-white/5">
                  <div className="flex items-center gap-3">
                     <BrainCircuit className="w-4 h-4 text-indigo-500" />
                     <p className="text-xs font-black text-white uppercase italic tracking-widest">Neural Persona</p>
                  </div>
                  <div className="grid grid-cols-3 gap-2">
                     {personalities.map(p => (
-                      <button 
+                      <button
                         key={p}
                         onClick={() => updateState({ aiPersonality: p })}
                         className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all ${
-                          appState.aiPersonality === p 
-                          ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' 
+                          appState.aiPersonality === p
+                          ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20'
                           : 'bg-black/40 border-white/5 text-gray-500'
                         }`}
                       >

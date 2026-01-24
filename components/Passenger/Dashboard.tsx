@@ -534,7 +534,7 @@ const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ appState, updat
           addNotification={addNotification}
         />
       )}
-      {isBuddyHubOpen && <BuddyHub onClose={() => setIsBuddyHubOpen(false)} userMood={appState.mood} rideStatus={appState.rideStatus} />}
+      {isBuddyHubOpen && <BuddyHub onClose={() => setIsBuddyHubOpen(false)} userMood={appState.mood} rideStatus={appState.rideStatus} preferredLanguage={appState.preferredLanguage} />}
       {appState.rideStatus === RideStatus.PAYMENT_PENDING && (
         <PaymentModal
           amount={finalPrice}
